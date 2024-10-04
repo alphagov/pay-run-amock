@@ -50,11 +50,32 @@ function queryObjectsMatch (actualQO, configuredQO) {
   return result
 }
 
+function objectsDeepEqual(l, r) {
+  if (Object.keys(l).length !== Object.keys(r).length) {
+    return false
+  }
+  for (const key in l) {
+    if (typeof l[key] === 'object') {
+      if (!objectsDeepEqual(l[key], r[key])) {
+        return false
+      }
+    } else if (r[key] !== l[key]) {
+      return false
+    }
+  }
+  return true
+}
+
 function bodyObjectsMatch (actualBody, configuredBody) {
   if (configuredBody === undefined) {
     return true
   }
-  const result = JSON.stringify(actualBody) === JSON.stringify(configuredBody);
+  const result = objectsDeepEqual(actualBody, configuredBody)
+  if (!result) {
+    console.log('Bodies do not match:')
+    console.log('actual', actualBody)
+    console.log('configured', configuredBody)
+  }
   console.log('body match result', result)
   return result
 }
@@ -100,13 +121,14 @@ const coreHandlers = {
         }
         const predicateEquals = predicate.deepEquals || predicate.equals || {}
         const { path, method, query, body: bodyObj } = predicateEquals
+
         if (!path) {
           return errors.push('predicate is missing path')
         }
         if (!method) {
           return errors.push('predicate is missing method')
         }
-        const additionalKeys = Object.keys(predicateEquals).filter(x => !['path', 'method', 'query', 'body'].includes(x))
+        const additionalKeys = Object.keys(predicateEquals).filter(x => !['path', 'method', 'query', 'body', 'headers'].includes(x))
         if (additionalKeys.length > 0) {
           return errors.push(`unexpected keys for predicate [${method}] [${path}], [${additionalKeys.join(', ')}]`)
         }
@@ -122,6 +144,7 @@ const coreHandlers = {
             return errors.push('No status code provided')
           }
           const body = response.is.body
+          const headers = response.is.headers
           // console.log(`adding [${method}], [${path}], query string [${queryStringFromObject(query)}]`)
           if (!configuredHandlers[method][path]) {
             configuredHandlers[method][path] = []
@@ -133,8 +156,9 @@ const coreHandlers = {
               statusCode,
               body,
               queryObj: query,
-              bodyObj: bodyObj,
-              lastUsedDate
+              bodyObj,
+              lastUsedDate,
+              headers
             })
           }
         })
@@ -208,6 +232,12 @@ function getHandlerForRequest ({ method, url, queryObj, body }) {
   console.log(`No [${method}] handler found for URL:`)
   console.log('')
   console.log(getFullUrl(url, queryObj))
+  if (body) {
+    console.log('')
+    console.log('With body:')
+    console.log('')
+    console.log(JSON.stringify(body, null, 2))
+  }
   console.log('')
   console.log('Available urls:')
   availableUrls.forEach(url => console.log(` - ${url}`))
@@ -263,6 +293,14 @@ function getValidationExplanationForRequest (result) {
   return rawResults.join(', ')
 }
 
+function getHeadersFromResult (result) {
+  const headers = typeof result?.body === 'object' ? { 'Content-Type': 'application/json' } : {}
+  Object.keys(result?.headers || {}).forEach(key => {
+    headers[key] = result.headers[key]
+  })
+  return headers
+}
+
 const server = http.createServer((req, res) => {
   const bodyParts = []
   let responseInitiated = false
@@ -300,15 +338,15 @@ const server = http.createServer((req, res) => {
         issueErrorResponse(error, false, res)
       } else {
         if (typeof result.body === 'object') {
-          res.writeHead(result.statusCode, { 'Content-Type': 'application/json' })
+          res.writeHead(result.statusCode, getHeadersFromResult(result))
           responseInitiated = true
           res.end(JSON.stringify(result.body))
         } else if (result.body) {
-          res.writeHead(result.statusCode)
+          res.writeHead(result.statusCode, getHeadersFromResult(result))
           responseInitiated = true
           res.end(result.body)
         } else {
-          res.writeHead(result.statusCode)
+          res.writeHead(result.statusCode, getHeadersFromResult(result))
           responseInitiated = true
           res.end()
         }

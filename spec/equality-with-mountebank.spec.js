@@ -1,8 +1,8 @@
 import * as net from 'node:net'
-import {afterEach, beforeEach, describe, it} from 'node:test'
+import { afterEach, beforeEach, describe, it } from 'node:test'
 import * as assert from 'node:assert'
 
-async function findAvailablePort() {
+async function findAvailablePort () {
   return await new Promise((resolve) => {
     let port
     const tmpServer = net.createServer(function (sock) {
@@ -35,26 +35,26 @@ const selfConfig = {
   mockPort: 9999
 }
 
-async function httpPostJson(url, body) {
-  return await fetch(url, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)})
+async function httpPostJson (url, body) {
+  return await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
 }
 
-async function httpPatchJson(url, body) {
-  return await fetch(url, {method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)})
+async function httpPatchJson (url, body) {
+  return await fetch(url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
 }
 
-async function clearAllMocks(config) {
-  const result = await fetch(config.imposterClearUrl, {method: config.imposterClearMethod})
+async function clearAllMocks (config) {
+  const result = await fetch(config.imposterClearUrl, { method: config.imposterClearMethod })
   assert.equal(200, result.status, `Failed to clear all mocks, status code [${result.status}], body [${await result.text()}`)
 }
 
-async function setupImposters(config, imposterSetupBody) {
+async function setupImposters (config, imposterSetupBody) {
   const setupResult = await httpPostJson(config.imposterSetupUrl, imposterSetupBody)
   const setupResultBody = await setupResult.text()
   assert.equal(201, setupResult.status, `failed setup, status code: [${setupResult.status}], response body: [${setupResultBody}]`)
 }
 
-function jsonString(main, ...parts) {
+function jsonString (main, ...parts) {
   const outParts = []
   main.forEach((item, index) => {
     outParts.push(item)
@@ -211,7 +211,7 @@ testRunConfigs.forEach(config => {
     await setupImposters(config, {
       port: mockPort,
       protocol: 'http',
-      defaultResponse: {statusCode, body: fakeBody, headers: {}},
+      defaultResponse: { statusCode, body: fakeBody, headers: {} },
       stubs: []
     })
 
@@ -224,13 +224,11 @@ testRunConfigs.forEach(config => {
     assert.deepEqual(fakeBody, responseBody)
   })
   it(`should allow body matching in predicates (${config.name})`, async () => {
-    const fakeBody = 'No stub predicate matches the request'
-    const statusCode = 404
-    const uri = '/v1/api/services/a-service-external-id';
+    const uri = '/v1/api/services/a-service-external-id'
     await setupImposters(config, {
       port: mockPort,
       protocol: 'http',
-      defaultResponse: {statusCode, body: fakeBody, headers: {}},
+      defaultResponse: { statusCode: 404, body: 'No stub predicate matches the request', headers: {} },
       stubs: [{
         name: `The name doesn't matter (unique: ${Math.random()})`,
         predicates: [
@@ -294,5 +292,157 @@ testRunConfigs.forEach(config => {
 
       assert.equal(404, successResult.status, `Expected a failure response from [${fullMockUrl}], got a [${successResult.status}]`)
     }))
+  })
+  it(`should allow deep matching for body (${config.name})`, async () => {
+    const uri = '/v1/api/accounts/42/credentials/101'
+    await setupImposters(config, {
+      port: mockPort,
+      protocol: 'http',
+      defaultResponse: { statusCode: 404, body: 'No stub predicate matches the request', headers: {} },
+      stubs: [{
+        name: `The name doesn't matter (unique: ${Math.random()})`,
+        predicates: [
+          {
+            deepEquals: {
+              method: 'PATCH',
+              path: uri,
+              body: [
+                {
+                  op: 'replace',
+                  path: 'credentials/worldpay/recurring_customer_initiated',
+                  value: {
+                    username: 'a-cit-username',
+                    password: 'a-password',
+                    merchant_code: 'a-cit-merchant-code'
+                  }
+                },
+                {
+                  op: 'replace',
+                  path: 'last_updated_by_user_external_id',
+                  value: 'cd0fa54cf3b7408a80ae2f1b93e7c16e'
+                }
+              ]
+            }
+          }
+        ],
+        responses: [
+          {
+            is: {
+              statusCode: 200,
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            }
+          }
+        ]
+      }
+      ]
+    })
+
+    const acceptableBodies = [
+      [
+        {
+          op: 'replace',
+          path: 'credentials/worldpay/recurring_customer_initiated',
+          value: {
+            username: 'a-cit-username',
+            password: 'a-password',
+            merchant_code: 'a-cit-merchant-code'
+          }
+        },
+        {
+          op: 'replace',
+          path: 'last_updated_by_user_external_id',
+          value: 'cd0fa54cf3b7408a80ae2f1b93e7c16e'
+        }
+      ],
+      [
+        {
+          path: 'credentials/worldpay/recurring_customer_initiated',
+          op: 'replace',
+          value: {
+            password: 'a-password',
+            username: 'a-cit-username',
+            merchant_code: 'a-cit-merchant-code'
+          }
+        },
+        {
+          path: 'last_updated_by_user_external_id',
+          op: 'replace',
+          value: 'cd0fa54cf3b7408a80ae2f1b93e7c16e'
+        }
+      ]
+    ]
+    const fullMockUrl = config.mockedHttpBaseUrl + uri
+    await Promise.all(acceptableBodies.map(async (body) => {
+      const successResult = await httpPatchJson(fullMockUrl, body)
+
+      assert.equal(200, successResult.status, `Expected a success response from [${fullMockUrl}], got a [${successResult.status}]`)
+    }))
+  })
+  it(`should use provided headers (${config.name})`, async () => {
+    const uri = '/hello/world'
+    const uri2 = '/hello/world2'
+    await setupImposters(config, {
+      port: mockPort,
+      protocol: 'http',
+      stubs: [{
+        name: `The name doesn't matter (unique: ${Math.random()})`,
+        predicates: [
+          {
+            deepEquals: {
+              method: 'GET',
+              path: uri
+            }
+          }
+        ],
+        responses: [
+          {
+            is: {
+              statusCode: 200,
+              headers: {
+                'Content-Type': 'application/json',
+                'X-Powered-By': 'Love'
+              },
+              body: {
+                matched: true
+              }
+            }
+          }
+        ]
+      }, {
+        name: `The name doesn't matter (unique: ${Math.random()})`,
+        predicates: [
+          {
+            deepEquals: {
+              method: 'GET',
+              path: uri2
+            }
+          }
+        ],
+        responses: [
+          {
+            is: {
+              statusCode: 200,
+              headers: {
+                'Content-Type': 'application/json',
+                'X-Powered-By': 'Vengeance'
+              },
+              body: {
+                matched: true
+              }
+            }
+          }
+        ]
+      }]
+    })
+
+    const fullMockUrl1 = config.mockedHttpBaseUrl + uri
+    const result1 = await fetch(fullMockUrl1)
+    assert.equal('Love', result1.headers.get('x-powered-by'))
+
+    const fullMockUrl2 = config.mockedHttpBaseUrl + uri
+    const result2 = await fetch(fullMockUrl2)
+    assert.equal('Love', result2.headers.get('x-powered-by'))
   })
 })
