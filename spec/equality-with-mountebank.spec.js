@@ -1,8 +1,8 @@
 import * as net from 'node:net'
-import { afterEach, beforeEach, describe, it } from 'node:test'
+import {afterEach, beforeEach, describe, it} from 'node:test'
 import * as assert from 'node:assert'
 
-async function findAvailablePort () {
+async function findAvailablePort() {
   return await new Promise((resolve) => {
     let port
     const tmpServer = net.createServer(function (sock) {
@@ -35,26 +35,26 @@ const selfConfig = {
   mockPort: 9999
 }
 
-async function httpPostJson (url, body) {
-  return await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+async function httpPostJson(url, body) {
+  return await fetch(url, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)})
 }
 
-async function httpPatchJson (url, body) {
-  return await fetch(url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+async function httpPatchJson(url, body) {
+  return await fetch(url, {method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)})
 }
 
-async function clearAllMocks (config) {
-  const result = await fetch(config.imposterClearUrl, { method: config.imposterClearMethod })
+async function clearAllMocks(config) {
+  const result = await fetch(config.imposterClearUrl, {method: config.imposterClearMethod})
   assert.equal(200, result.status, `Failed to clear all mocks, status code [${result.status}], body [${await result.text()}`)
 }
 
-async function setupImposters (config, imposterSetupBody) {
+async function setupImposters(config, imposterSetupBody) {
   const setupResult = await httpPostJson(config.imposterSetupUrl, imposterSetupBody)
   const setupResultBody = await setupResult.text()
   assert.equal(201, setupResult.status, `failed setup, status code: [${setupResult.status}], response body: [${setupResultBody}]`)
 }
 
-function jsonString (main, ...parts) {
+function jsonString(main, ...parts) {
   const outParts = []
   main.forEach((item, index) => {
     outParts.push(item)
@@ -182,8 +182,6 @@ testRunConfigs.forEach(config => {
         ]
       }
 
-      console.log(JSON.stringify(imposterSetupBody))
-
       await setupImposters(config, imposterSetupBody)
 
       let counter = 0
@@ -298,7 +296,7 @@ testRunConfigs.forEach(config => {
     await setupImposters(config, {
       port: mockPort,
       protocol: 'http',
-      defaultResponse: { statusCode: 404, body: 'No stub predicate matches the request', headers: {} },
+      defaultResponse: {statusCode: 404, body: 'No stub predicate matches the request', headers: {}},
       stubs: [{
         name: `The name doesn't matter (unique: ${Math.random()})`,
         predicates: [
@@ -371,6 +369,22 @@ testRunConfigs.forEach(config => {
           op: 'replace',
           value: 'cd0fa54cf3b7408a80ae2f1b93e7c16e'
         }
+      ],
+      [
+        {
+          path: 'last_updated_by_user_external_id',
+          op: 'replace',
+          value: 'cd0fa54cf3b7408a80ae2f1b93e7c16e'
+        },
+        {
+          path: 'credentials/worldpay/recurring_customer_initiated',
+          op: 'replace',
+          value: {
+            password: 'a-password',
+            username: 'a-cit-username',
+            merchant_code: 'a-cit-merchant-code'
+          }
+        }
       ]
     ]
     const fullMockUrl = config.mockedHttpBaseUrl + uri
@@ -379,7 +393,26 @@ testRunConfigs.forEach(config => {
 
       assert.equal(200, successResult.status, `Expected a success response from [${fullMockUrl}], got a [${successResult.status}]`)
     }))
+    const unacceptableBodies = [
+      [
+        {
+          path: 'credentials/worldpay/recurring_customer_initiated',
+          op: 'replace',
+          value: {
+            password: 'a-password',
+            username: 'a-cit-username',
+            merchant_code: 'a-cit-merchant-code'
+          }
+        }
+      ]
+    ]
+    await Promise.all(unacceptableBodies.map(async (body) => {
+      const successResult = await httpPatchJson(fullMockUrl, body)
+
+      assert.equal(404, successResult.status, `Expected a failure response from [${fullMockUrl}], got a [${successResult.status}]`)
+    }))
   })
+
   it(`should use provided headers (${config.name})`, async () => {
     const uri = '/hello/world'
     const uri2 = '/hello/world2'
