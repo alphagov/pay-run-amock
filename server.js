@@ -90,14 +90,7 @@ function bodyObjectsMatch (actualBody, configuredBody) {
   if (configuredBody === undefined) {
     return true
   }
-  const result = objectsDeepEqual(actualBody, configuredBody)
-  if (!result) {
-    console.log('Bodies do not match:')
-    console.log('actual', actualBody)
-    console.log('configured', configuredBody)
-  }
-  console.log('body match result', result)
-  return result
+  return objectsDeepEqual(actualBody, configuredBody)
 }
 
 function getFullUrl (url, queryObj) {
@@ -117,8 +110,6 @@ const coreHandlers = {
         return respondWith400('no stubs provided')
       }
       const errors = []
-      console.log('stubRequest:')
-      console.log(JSON.stringify(requestBody))
       if (requestBody.defaultResponse) {
         configuredHandlers.__default__ = requestBody.defaultResponse
       }
@@ -165,7 +156,6 @@ const coreHandlers = {
           }
           const body = response.is.body
           const headers = response.is.headers
-          // console.log(`adding [${method}], [${path}], query string [${queryStringFromObject(query)}]`)
           if (!configuredHandlers[method][path]) {
             configuredHandlers[method][path] = []
           }
@@ -187,8 +177,6 @@ const coreHandlers = {
         console.error('Errors when setting up handlers', errors)
         return respondWith400(`There were errors handling your stub setup: \n\n - ${errors.join('\n - ')}`)
       } else {
-        console.log(`Set up [${stubs.length}] stubs.`)
-        // console.log(JSON.stringify(configuredHandlers, null, 2))
         return {
           statusCode: 201,
           body: {
@@ -215,11 +203,8 @@ const configuredHandlers = {}
 
 const defaultHandler = (req) => {
   if (configuredHandlers.__default__) {
-    console.log('not found, issuing configured default response')
     return configuredHandlers.__default__
   }
-  console.log('not found, issuing default default response')
-  // console.log('unhandled request', req)
 
   return {
     statusCode: 200,
@@ -252,12 +237,6 @@ function getHandlerForRequest ({ method, url, queryObj, body }) {
   console.log(`No [${method}] handler found for URL:`)
   console.log('')
   console.log(getFullUrl(url, queryObj))
-  if (body) {
-    console.log('')
-    console.log('With body:')
-    console.log('')
-    console.log(JSON.stringify(body, null, 2))
-  }
   console.log('')
   console.log('Available urls:')
   availableUrls.forEach(url => console.log(` - ${url}`))
