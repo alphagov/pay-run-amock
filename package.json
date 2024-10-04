@@ -1,0 +1,16 @@
+{
+  "name": "@govuk-pay/http-configurable-mock-server",
+  "version": "0.0.1",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "node spec/equality-with-mountebank.spec.js"
+  },
+  "bin": {
+    "http-configurable-mock-server": "bin/run"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
