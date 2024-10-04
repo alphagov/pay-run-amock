@@ -2,3 +2,4 @@
 .idea
 mb.log
 mb.pid
+mb*.log

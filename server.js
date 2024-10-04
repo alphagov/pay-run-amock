@@ -2,6 +2,7 @@ import * as http from 'node:http'
 
 const portArgFromArgv = process.argv.find(x => x.startsWith('--port='))
 const portFromArgv = portArgFromArgv && Number(portArgFromArgv.substring('--port='.length))
+const isDebug = process.argv.includes('--debug')
 const port = portFromArgv || process.env.PORT || 9999
 
 function respondWith400 (reason) {
@@ -50,17 +51,17 @@ function queryObjectsMatch (actualQO, configuredQO) {
   return result
 }
 
-function objectsDeepEqual(l, r, {allowArraysInAnyOrder = true} = {}) {
+function objectsDeepEqual (l, r, { allowArraysInAnyOrder = true } = {}) {
   if (Object.keys(l).length !== Object.keys(r).length) {
     return false
   }
 
-  function itemsMatch(l, r) {
+  function itemsMatch (l, r) {
     if (typeof l === 'object') {
       return objectsDeepEqual(l, r)
     }
 
-    return r.includes(l);
+    return r.includes(l)
   }
 
   if (allowArraysInAnyOrder && Array.isArray(l)) {
@@ -105,6 +106,10 @@ const coreHandlers = {
   POST: {
     '/__add-mock-endpoints__': (request) => {
       const requestBody = request.body
+      if (isDebug) {
+        console.log('Request body adding mock endpoints:')
+        console.log(JSON.stringify(requestBody))
+      }
       const stubs = requestBody.stubs
       if (!stubs) {
         return respondWith400('no stubs provided')
@@ -159,7 +164,7 @@ const coreHandlers = {
           if (!configuredHandlers[method][path]) {
             configuredHandlers[method][path] = []
           }
-          let timesToGiveThisResponse = (response._behaviours?.repeat ?? 0) + 1
+          let timesToGiveThisResponse = (response._behaviours?.repeat ?? 0) || 1
           const lastUsedDate = getCurrentTime()
           while (timesToGiveThisResponse-- > 0) {
             configuredHandlers[method][path].push({
@@ -220,6 +225,9 @@ function getHandlerForRequest ({ method, url, queryObj, body }) {
     if (filtered.length > 0) {
       const foundHandler = filtered.sort(oldestLastUsedFirst)[0]
       foundHandler.lastUsedDate = getCurrentTime()
+      if (isDebug) {
+        console.log('handling request:', { method, url, queryObj, body, foundHandler })
+      }
       return () => foundHandler
     }
   }
@@ -231,18 +239,26 @@ function getHandlerForRequest ({ method, url, queryObj, body }) {
       availableUrls.add(getFullUrl(url, config.queryObj))
     })
   })
-  console.log('')
-  console.log('- - -')
-  console.log('')
-  console.log(`No [${method}] handler found for URL:`)
-  console.log('')
-  console.log(getFullUrl(url, queryObj))
-  console.log('')
-  console.log('Available urls:')
-  availableUrls.forEach(url => console.log(` - ${url}`))
-  console.log('')
-  console.log('- - -')
-  console.log('')
+  if (isDebug) {
+    console.log('')
+    console.log('- - -')
+    console.log('')
+    console.log(`No [${method}] handler found for URL:`)
+    console.log('')
+    console.log(getFullUrl(url, queryObj))
+    if (body) {
+      console.log('')
+      console.log('With body:')
+      console.log('')
+      console.log(JSON.stringify(body, null, 2))
+    }
+    console.log('')
+    console.log('Available urls:')
+    availableUrls.forEach(url => console.log(` - ${url}`))
+    console.log('')
+    console.log('- - -')
+    console.log('')
+  }
 
   return defaultHandler
 }

@@ -1,8 +1,8 @@
 import * as net from 'node:net'
-import {afterEach, beforeEach, describe, it} from 'node:test'
+import { afterEach, beforeEach, describe, it } from 'node:test'
 import * as assert from 'node:assert'
 
-async function findAvailablePort() {
+async function findAvailablePort () {
   return await new Promise((resolve) => {
     let port
     const tmpServer = net.createServer(function (sock) {
@@ -35,26 +35,26 @@ const selfConfig = {
   mockPort: 9999
 }
 
-async function httpPostJson(url, body) {
-  return await fetch(url, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)})
+async function httpPostJson (url, body) {
+  return await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
 }
 
-async function httpPatchJson(url, body) {
-  return await fetch(url, {method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)})
+async function httpPatchJson (url, body) {
+  return await fetch(url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
 }
 
-async function clearAllMocks(config) {
-  const result = await fetch(config.imposterClearUrl, {method: config.imposterClearMethod})
+async function clearAllMocks (config) {
+  const result = await fetch(config.imposterClearUrl, { method: config.imposterClearMethod })
   assert.equal(200, result.status, `Failed to clear all mocks, status code [${result.status}], body [${await result.text()}`)
 }
 
-async function setupImposters(config, imposterSetupBody) {
+async function setupImposters (config, imposterSetupBody) {
   const setupResult = await httpPostJson(config.imposterSetupUrl, imposterSetupBody)
   const setupResultBody = await setupResult.text()
   assert.equal(201, setupResult.status, `failed setup, status code: [${setupResult.status}], response body: [${setupResultBody}]`)
 }
 
-function jsonString(main, ...parts) {
+function jsonString (main, ...parts) {
   const outParts = []
   main.forEach((item, index) => {
     outParts.push(item)
@@ -296,7 +296,7 @@ testRunConfigs.forEach(config => {
     await setupImposters(config, {
       port: mockPort,
       protocol: 'http',
-      defaultResponse: {statusCode: 404, body: 'No stub predicate matches the request', headers: {}},
+      defaultResponse: { statusCode: 404, body: 'No stub predicate matches the request', headers: {} },
       stubs: [{
         name: `The name doesn't matter (unique: ${Math.random()})`,
         predicates: [
@@ -411,6 +411,274 @@ testRunConfigs.forEach(config => {
 
       assert.equal(404, successResult.status, `Expected a failure response from [${fullMockUrl}], got a [${successResult.status}]`)
     }))
+  })
+  it(`should work with Frontend tests for wallets (${config.name})`, async () => {
+    const uri = '/v1/frontend/charges/ub8de8r5mh4pb49rgm1ismaqfv'
+    await setupImposters(config, {
+      port: mockPort,
+      protocol: 'http',
+      recordRequests: false,
+      stubs: [
+        {
+          predicates: [
+            {
+              equals: {
+                method: 'GET',
+                path: uri
+              }
+            }
+          ],
+          responses: [
+            {
+              is: {
+                statusCode: 200,
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: {
+                  amount: 1000,
+                  state: {
+                    finished: false,
+                    status: 'created'
+                  },
+                  description: 'Example fixture payment',
+                  payment_provider: 'worldpay',
+                  language: 'en',
+                  status: 'CREATED',
+                  charge_id: 'ub8de8r5mh4pb49rgm1ismaqfv',
+                  return_url: '/humans.txt?confirm',
+                  created_date: '2019-02-12T17:53:31.307Z',
+                  delayed_capture: false,
+                  moto: true,
+                  gateway_account: {
+                    gateway_account_id: 6,
+                    allow_apple_pay: false,
+                    allow_google_pay: true,
+                    gateway_merchant_id: 'SMTHG12345UP',
+                    analytics_id: 'an-analytics-id',
+                    corporate_credit_card_surcharge_amount: 0,
+                    corporate_debit_card_surcharge_amount: 0,
+                    corporate_prepaid_debit_card_surcharge_amount: 0,
+                    email_collection_mode: 'MANDATORY',
+                    block_prepaid_cards: false,
+                    requires3ds: true,
+                    service_name: 'My service',
+                    type: 'test',
+                    integration_version_3ds: 2,
+                    card_types: [
+                      {
+                        brand: 'visa',
+                        id: 'b9dae820-0d11-4280-b8bb-6a3a320b7e7a',
+                        label: 'Visa',
+                        requires3ds: false,
+                        type: 'DEBIT'
+                      },
+                      {
+                        brand: 'visa',
+                        id: 'b2c53a34-8566-4050-963f-7f20b43f3650',
+                        label: 'Visa',
+                        requires3ds: false,
+                        type: 'CREDIT'
+                      },
+                      {
+                        brand: 'master-card',
+                        id: 'e33c7b30-f2f5-4d9d-ac00-a61d598d353e',
+                        label: 'Mastercard',
+                        requires3ds: false,
+                        type: 'DEBIT'
+                      },
+                      {
+                        brand: 'master-card',
+                        id: 'f9adcba5-3c8e-4bbb-bb29-3d8f1cf152fc',
+                        label: 'Mastercard',
+                        requires3ds: false,
+                        type: 'CREDIT'
+                      },
+                      {
+                        brand: 'american-express',
+                        id: '9cb3f107-391b-4ca9-a42e-27e8a0b277a2',
+                        label: 'American Express',
+                        requires3ds: false,
+                        type: 'CREDIT'
+                      },
+                      {
+                        brand: 'diners-club',
+                        id: 'c36f5a66-ce27-462f-a971-76783eed40e7',
+                        label: 'Diners Club',
+                        requires3ds: false,
+                        type: 'CREDIT'
+                      },
+                      {
+                        brand: 'discover',
+                        id: 'e0f2590d-219f-4627-b693-43fa8bb41583',
+                        label: 'Discover',
+                        requires3ds: false,
+                        type: 'CREDIT'
+                      },
+                      {
+                        brand: 'jcb',
+                        id: '45714fbd-ca7b-4900-9777-084fe5b223be',
+                        label: 'Jcb',
+                        requires3ds: false,
+                        type: 'CREDIT'
+                      },
+                      {
+                        brand: 'unionpay',
+                        id: 'acd5ca07-d27d-43b6-9e2a-bb42699dc644',
+                        label: 'Union Pay',
+                        requires3ds: false,
+                        type: 'CREDIT'
+                      }
+                    ],
+                    moto_mask_card_number_input: false,
+                    moto_mask_card_security_code_input: false
+                  },
+                  agreement_id: 'an-agreement-id',
+                  agreement: {
+                    agreement_id: 'an-agreement-id',
+                    description: 'a valid description',
+                    reference: 'a-valid-reference'
+                  },
+                  save_payment_instrument_to_agreement: true
+                }
+              },
+              _behaviours: {
+                repeat: 1
+              }
+            },
+            {
+              is: {
+                statusCode: 200,
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: {
+                  amount: 1000,
+                  state: {
+                    finished: true,
+                    status: 'success'
+                  },
+                  description: 'Example fixture payment',
+                  payment_provider: 'worldpay',
+                  language: 'en',
+                  status: 'CAPTURE APPROVED',
+                  charge_id: 'ub8de8r5mh4pb49rgm1ismaqfv',
+                  return_url: '/humans.txt?confirm',
+                  created_date: '2019-02-12T17:53:31.307Z',
+                  delayed_capture: false,
+                  moto: false,
+                  gateway_account: {
+                    gateway_account_id: 6,
+                    allow_apple_pay: false,
+                    allow_google_pay: true,
+                    gateway_merchant_id: 'SMTHG12345UP',
+                    analytics_id: 'an-analytics-id',
+                    corporate_credit_card_surcharge_amount: 0,
+                    corporate_debit_card_surcharge_amount: 0,
+                    corporate_prepaid_debit_card_surcharge_amount: 0,
+                    email_collection_mode: 'MANDATORY',
+                    block_prepaid_cards: false,
+                    requires3ds: true,
+                    service_name: 'My service',
+                    type: 'test',
+                    integration_version_3ds: 2,
+                    card_types: [
+                      {
+                        brand: 'visa',
+                        id: 'b9dae820-0d11-4280-b8bb-6a3a320b7e7a',
+                        label: 'Visa',
+                        requires3ds: false,
+                        type: 'DEBIT'
+                      },
+                      {
+                        brand: 'visa',
+                        id: 'b2c53a34-8566-4050-963f-7f20b43f3650',
+                        label: 'Visa',
+                        requires3ds: false,
+                        type: 'CREDIT'
+                      },
+                      {
+                        brand: 'master-card',
+                        id: 'e33c7b30-f2f5-4d9d-ac00-a61d598d353e',
+                        label: 'Mastercard',
+                        requires3ds: false,
+                        type: 'DEBIT'
+                      },
+                      {
+                        brand: 'master-card',
+                        id: 'f9adcba5-3c8e-4bbb-bb29-3d8f1cf152fc',
+                        label: 'Mastercard',
+                        requires3ds: false,
+                        type: 'CREDIT'
+                      },
+                      {
+                        brand: 'american-express',
+                        id: '9cb3f107-391b-4ca9-a42e-27e8a0b277a2',
+                        label: 'American Express',
+                        requires3ds: false,
+                        type: 'CREDIT'
+                      },
+                      {
+                        brand: 'diners-club',
+                        id: 'c36f5a66-ce27-462f-a971-76783eed40e7',
+                        label: 'Diners Club',
+                        requires3ds: false,
+                        type: 'CREDIT'
+                      },
+                      {
+                        brand: 'discover',
+                        id: 'e0f2590d-219f-4627-b693-43fa8bb41583',
+                        label: 'Discover',
+                        requires3ds: false,
+                        type: 'CREDIT'
+                      },
+                      {
+                        brand: 'jcb',
+                        id: '45714fbd-ca7b-4900-9777-084fe5b223be',
+                        label: 'Jcb',
+                        requires3ds: false,
+                        type: 'CREDIT'
+                      },
+                      {
+                        brand: 'unionpay',
+                        id: 'acd5ca07-d27d-43b6-9e2a-bb42699dc644',
+                        label: 'Union Pay',
+                        requires3ds: false,
+                        type: 'CREDIT'
+                      }
+                    ],
+                    moto_mask_card_number_input: false,
+                    moto_mask_card_security_code_input: false
+                  },
+                  agreement_id: 'an-agreement-id',
+                  agreement: {
+                    agreement_id: 'an-agreement-id',
+                    description: 'a valid description',
+                    reference: 'a-valid-reference'
+                  },
+                  save_payment_instrument_to_agreement: true
+                }
+              }
+            }
+          ]
+        }
+      ]
+    })
+
+    const fullMockUrl = config.mockedHttpBaseUrl + uri
+    const expectedStatusesInOrder = ['CREATED', 'CAPTURE APPROVED', 'CREATED', 'CAPTURE APPROVED', 'CREATED', 'CAPTURE APPROVED', 'CREATED', 'CAPTURE APPROVED']
+    const actualStatusesInOrder = []
+
+    while (expectedStatusesInOrder.length > actualStatusesInOrder.length) {
+      const successResult = await fetch(fullMockUrl)
+
+      assert.equal(200, successResult.status, `Expected a success response from [${fullMockUrl}], got a [${successResult.status}]`)
+      const jsonBody = await successResult.json()
+      const jsonBodyStatus = jsonBody.status
+      actualStatusesInOrder.push(jsonBodyStatus)
+    }
+
+    assert.deepEqual(actualStatusesInOrder, expectedStatusesInOrder)
   })
 
   it(`should use provided headers (${config.name})`, async () => {
