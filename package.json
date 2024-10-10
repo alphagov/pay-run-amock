@@ -1,16 +1,15 @@
 {
-  "name": "@govuk-pay/http-configurable-mock-server",
+  "name": "@govuk-pay/run-amock",
   "version": "0.0.1",
-  "main": "index.js",
   "type": "module",
   "scripts": {
     "test": "node spec/equality-with-mountebank.spec.js"
   },
   "bin": {
-    "http-configurable-mock-server": "bin/run"
+    "run-amock": "bin/run"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": ""
+  "keywords": ["http", "mock", "govuk", "GOV.UK"],
+  "author": "Natalie Carey <natalie.carey@digital.cabinet-office.gov.uk>",
+  "license": "MIT",
+  "description": "A drop-in replacement for Mountebank in our govuk-pay codebases."
 }
