@@ -16,6 +16,19 @@ Can anyone contribute to the project?
 
 We're not accepting contributions to this project but feel free to use it in any way the licence permits.
 
+Test approach
+---
+
+At the moment the tests focus on equivalency with Mountebank, there are three modes the test can run in:
+
+1. Default (`npm test`) - Test our solution on port 9999 without testing equivalency, this is suitable for testing
+that our app behaves the same after refactors
+2. Just testing Mountebank (`TEST_MB=true TEST_SELF=false npm test`) - Test Mountebank on port 2525 without testing 
+equivalency, this is suitable for testing changes to the test code, to make sure it's still compatible with Mountebank
+3. Testing both side-by-side (`TEST_MB=true TEST_SELF=true npm test`) - Test both apps for equivalency
+
+As we move away from equivalency with Mountebank this testing appraoch will need to be updated.
+
 What's the plan for the future?
 ---
 
