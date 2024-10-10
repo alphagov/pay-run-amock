@@ -11,10 +11,15 @@ This version is good enough to pass the Cypress tests in `pay-selfservice`.  It'
 for `pay-frontend`.  That's with minimal code changes in each repo - just pointing to different ports and a change to
 the `cypress:server` npm script.
 
+Can anyone contribute to the project?
+---
+
+We're not accepting contributions to this project but feel free to use it in any way the licence permits.
+
 What's the plan for the future?
 ---
 
-I (Natalie) would like to see this used in the short term as a drop-in replacement for Mountebank across our codebases,
+Right now this can be used in the short term as a drop-in replacement for Mountebank across our codebases,
 once that's done I'd like to take a look at what's helpful and unhelpful about the Mountebank approach and to turn this
 into a tool that works in a more helpful way for us, that will require codebase changes in the projects that use it.
 
