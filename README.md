@@ -42,6 +42,15 @@ What would you change if you could?
 There are a few things I've learned while going through this exercise, they don't all need changing but I think it's
 worth discussing them in more detail.  Here's a little list as a starter:
 
+### Case insensitive query strings
+
+Mountebank uses case insensitive query strings, both for keys and values.  This will hide problems. At the time of
+writing we have one test that 'uses' the 'feature' (you might be able to tell I'm not a fan).
+
+If we can write a mock for an API call with the query string `?page=1&status=failed`, then use it with a query string
+`?page=1&sTaTuS=fAiLeD` then it's not going to work in production but the mock will treat those as equivalent.  I would
+like the see this changed as a priority.
+
 ### Response arrays
 
 So when you come across a tool which allows an array of responses what would you assume happens when you just provide

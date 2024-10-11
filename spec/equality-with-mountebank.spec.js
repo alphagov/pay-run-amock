@@ -1,5 +1,5 @@
 import * as net from 'node:net'
-import { afterEach, beforeEach, describe, it } from 'node:test'
+import {afterEach, beforeEach, describe, it} from 'node:test'
 import * as assert from 'node:assert'
 
 async function findAvailablePort () {
@@ -389,6 +389,62 @@ testRunConfigs.forEach(config => {
       const successResult = await fetch(fullMockUrl + '?' + queryString)
 
       assert.equal(404, successResult.status, `Expected a failure response from [${fullMockUrl}], got a [${successResult.status}]`)
+    }))
+  })
+  it(`should accept the query string from webhooks test, keys and values are case insensitive in Mountebank (${config.name})`, async () => {
+    await setupImposters(config, {
+      port: mockPort,
+      protocol: 'http',
+      defaultResponse: { statusCode: 404, body: 'Default 404', headers: {} },
+      stubs: [
+        {
+          "name": "GET /v1/webhook/webhook-id/message 200",
+          "predicates": [
+            {
+              "equals": {
+                "method": "GET",
+                "path": "/v1/webhook/webhook-id/message",
+                "query": {
+                  "page": 1,
+                  "status": "failed"
+                }
+              }
+            }
+          ],
+          "responses": [
+            {
+              "is": {
+                "statusCode": 200,
+                "headers": {
+                  "Content-Type": "application/json"
+                },
+                "body": {}
+              }
+            }
+          ]
+        }
+      ]
+    })
+
+    const fullMockUrl = config.mockedHttpBaseUrl + '/v1/webhook/webhook-id/message'
+    const acceptableQueryStrings = [
+      'page=1&status=FAILED',
+      'page=1&STATUS=FAILED',
+      'page=1&status=FaIlEd',
+      'StAtUs=fAiLeD&page=1'
+    ]
+    const unacceptableQueryStrings = [
+      'page=1&status=failed%20'
+    ]
+    await Promise.all(acceptableQueryStrings.map(async (queryString) => {
+      const successResult = await fetch(fullMockUrl + '?' + queryString)
+
+      assert.equal(200, successResult.status, `Expected a success response from [${fullMockUrl}], got a [${successResult.status}] with query string [${queryString}]`)
+    }))
+    await Promise.all(unacceptableQueryStrings.map(async (queryString) => {
+      const successResult = await fetch(fullMockUrl + '?' + queryString)
+
+      assert.equal(404, successResult.status, `Expected a failure response from [${fullMockUrl}], got a [${successResult.status}] with query string [${queryString}]`)
     }))
   })
   it(`should allow deep body matching in predicates (${config.name})`, async () => {
