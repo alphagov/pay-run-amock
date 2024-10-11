@@ -29,7 +29,7 @@ const mountebankConfig = {
 const selfConfig = {
   name: 'http-configurable-mock-server',
   imposterSetupUrl: 'http://localhost:9999/__add-mock-endpoints__',
-  imposterClearUrl: 'http://localhost:9999/__clear-all-endpoints__',
+  imposterClearUrl: 'http://localhost:9999/__clear-mock-endpoints__',
   imposterClearMethod: 'POST',
   mockedHttpBaseUrl: 'http://localhost:9999',
   mockPort: 9999
@@ -45,7 +45,7 @@ async function httpPatchJson (url, body) {
 
 async function clearAllMocks (config) {
   const result = await fetch(config.imposterClearUrl, { method: config.imposterClearMethod })
-  assert.equal(200, result.status, `Failed to clear all mocks, status code [${result.status}], body [${await result.text()}`)
+  assert.equal(200, result.status, `Failed to clear all mocks, status code [${result.status}], body [${await result.text()}]`)
 }
 
 async function setupImposters (config, imposterSetupBody) {

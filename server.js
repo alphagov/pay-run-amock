@@ -1,21 +1,11 @@
 import * as http from 'node:http'
+import {coreHandlers} from "./lib/coreHandlers.js";
+import {getConfiguredHandlersSharedState, isDebug, port} from "./lib/sharedState.js";
+import {getCurrentTime} from "./lib/utils.js";
 
-const portArgFromArgv = process.argv.find(x => x.startsWith('--port='))
-const portFromArgv = portArgFromArgv && Number(portArgFromArgv.substring('--port='.length))
-const isDebug = process.argv.includes('--debug')
-const port = portFromArgv || process.env.PORT || 9999
+const configuredHandlers = getConfiguredHandlersSharedState()
 
-function respondWith400 (reason) {
-  return {
-    statusCode: 400,
-    body: {
-      error: true,
-      message: reason
-    }
-  }
-}
-
-function oldestLastUsedFirst (l, r) {
+function oldestLastUsedFirst(l, r) {
   if (l.lastUsedDate > r.lastUsedDate) {
     return 1
   }
@@ -25,7 +15,7 @@ function oldestLastUsedFirst (l, r) {
   return 0
 }
 
-function queryStringFromObject (queryObj) {
+function queryStringFromObject(queryObj) {
   if (!queryObj) {
     return ''
   }
@@ -33,14 +23,14 @@ function queryStringFromObject (queryObj) {
   return qs.length > 0 ? `?${qs}` : ''
 }
 
-function queryObjectFromString (queryString) {
+function queryObjectFromString(queryString) {
   if (!queryString || queryString === '') {
     return undefined
   }
   return Object.fromEntries((queryString || '').split('&').map(pair => pair.split('=').map(decodeURIComponent)))
 }
 
-function queryObjectsMatch (actualQO, configuredQO) {
+function queryObjectsMatch(actualQO, configuredQO) {
   const sanitisedActualQO = actualQO || {}
 
   if (!configuredQO) {
@@ -51,12 +41,12 @@ function queryObjectsMatch (actualQO, configuredQO) {
   return result
 }
 
-function objectsDeepEqual (l, r, { allowArraysInAnyOrder = true } = {}) {
+function objectsDeepEqual(l, r, {allowArraysInAnyOrder = true} = {}) {
   if (Object.keys(l).length !== Object.keys(r).length) {
     return false
   }
 
-  function itemsMatch (l, r) {
+  function itemsMatch(l, r) {
     if (typeof l === 'object') {
       return objectsDeepEqual(l, r)
     }
@@ -87,124 +77,16 @@ function objectsDeepEqual (l, r, { allowArraysInAnyOrder = true } = {}) {
   return true
 }
 
-function bodyObjectsMatch (actualBody, configuredBody) {
+function bodyObjectsMatch(actualBody, configuredBody) {
   if (configuredBody === undefined) {
     return true
   }
   return objectsDeepEqual(actualBody, configuredBody)
 }
 
-function getFullUrl (url, queryObj) {
+function getFullUrl(url, queryObj) {
   return url + queryStringFromObject(queryObj)
 }
-
-function getCurrentTime () {
-  return process.hrtime.bigint()
-}
-
-const coreHandlers = {
-  POST: {
-    '/__add-mock-endpoints__': (request) => {
-      const requestBody = request.body
-      if (isDebug) {
-        console.log('Request body adding mock endpoints:')
-        console.log(JSON.stringify(requestBody))
-      }
-      const stubs = requestBody.stubs
-      if (!stubs) {
-        return respondWith400('no stubs provided')
-      }
-      const errors = []
-      if (requestBody.defaultResponse) {
-        configuredHandlers.__default__ = requestBody.defaultResponse
-      }
-      stubs.forEach(({ predicates, responses }) => {
-        if (!predicates) {
-          return errors.push('no predicates provided (we require exactly one)')
-        }
-        if (predicates.length > 1) {
-          return errors.push('too many predicates provided (we require exactly one)')
-        }
-        const predicate = predicates[0]
-        if (!responses) {
-          return errors.push(`no responses provided, input was [${JSON.stringify({ predicates, responses })}]`)
-        }
-        if (responses.length === 0) {
-          return errors.push(`no responses provided in responses array, input was [${JSON.stringify({
-            predicates,
-            responses
-          })}]`)
-        }
-        const predicateEquals = predicate.deepEquals || predicate.equals || {}
-        const { path, method, query, body: bodyObj } = predicateEquals
-
-        if (!path) {
-          return errors.push('predicate is missing path')
-        }
-        if (!method) {
-          return errors.push('predicate is missing method')
-        }
-        const additionalKeys = Object.keys(predicateEquals).filter(x => !['path', 'method', 'query', 'body', 'headers'].includes(x))
-        if (additionalKeys.length > 0) {
-          return errors.push(`unexpected keys for predicate [${method}] [${path}], [${additionalKeys.join(', ')}]`)
-        }
-        if (!configuredHandlers[method]) {
-          configuredHandlers[method] = {}
-        }
-        responses.forEach(response => {
-          if (!response.is) {
-            return errors.push(`We only handle responses.is, keys provided [${Object.keys(responses).join(', ')}]`)
-          }
-          const statusCode = response.is.statusCode
-          if (!statusCode) {
-            return errors.push('No status code provided')
-          }
-          const body = response.is.body
-          const headers = response.is.headers
-          if (!configuredHandlers[method][path]) {
-            configuredHandlers[method][path] = []
-          }
-          let timesToGiveThisResponse = (response._behaviours?.repeat ?? 0) || 1
-          const lastUsedDate = getCurrentTime()
-          while (timesToGiveThisResponse-- > 0) {
-            configuredHandlers[method][path].push({
-              statusCode,
-              body,
-              queryObj: query,
-              bodyObj,
-              lastUsedDate,
-              headers
-            })
-          }
-        })
-      })
-      if (errors.length > 0) {
-        console.error('Errors when setting up handlers', errors)
-        return respondWith400(`There were errors handling your stub setup: \n\n - ${errors.join('\n - ')}`)
-      } else {
-        return {
-          statusCode: 201,
-          body: {
-            error: false,
-            setupSuccessful: true
-          }
-        }
-      }
-    },
-    '/__clear-all-endpoints__': () => {
-      Object.keys(configuredHandlers).forEach(key => {
-        delete configuredHandlers[key]
-      })
-      return {
-        statusCode: 200,
-        body: {
-          cleared: true
-        }
-      }
-    }
-  }
-}
-const configuredHandlers = {}
 
 const defaultHandler = (req) => {
   if (configuredHandlers.__default__) {
@@ -217,8 +99,10 @@ const defaultHandler = (req) => {
   }
 }
 
-function getHandlerForRequest ({ method, url, queryObj, body }) {
-  if (coreHandlers[method] && coreHandlers[method][url]) return coreHandlers[method][url]
+function getHandlerForRequest({method, url, queryObj, body}) {
+  if (coreHandlers[method] && coreHandlers[method][url]) {
+    return coreHandlers[method][url]
+  }
   if (configuredHandlers[method] && configuredHandlers[method][url] && configuredHandlers[method][url].length > 0) {
     const handlers = configuredHandlers[method][url]
     const filtered = handlers.filter(conf => queryObjectsMatch(queryObj, conf.queryObj)).filter(conf => bodyObjectsMatch(body, conf.bodyObj))
@@ -226,10 +110,14 @@ function getHandlerForRequest ({ method, url, queryObj, body }) {
       const foundHandler = filtered.sort(oldestLastUsedFirst)[0]
       foundHandler.lastUsedDate = getCurrentTime()
       if (isDebug) {
-        console.log('handling request:', { method, url, queryObj, body, foundHandler })
+        console.log('handling request:', {method, url, queryObj, body, foundHandler})
       }
       return () => foundHandler
     }
+  }
+
+  if (isDebug) {
+    console.log('Configured handlers (on 404)', configuredHandlers)
   }
 
   const availableUrls = new Set()
@@ -263,10 +151,10 @@ function getHandlerForRequest ({ method, url, queryObj, body }) {
   return defaultHandler
 }
 
-function issueErrorResponse (err, responseInitiated, res) {
+function issueErrorResponse(err, responseInitiated, res) {
   console.error(err)
   if (!responseInitiated) {
-    res.writeHead(500, { 'Content-Type': 'application/json' })
+    res.writeHead(500, {'Content-Type': 'application/json'})
   }
   res.end(JSON.stringify({
     error: true,
@@ -280,7 +168,7 @@ function issueErrorResponse (err, responseInitiated, res) {
   }))
 }
 
-function _validateResultRaw (result) {
+function _validateResultRaw(result) {
   const reasonsForRejection = []
   if (typeof result === 'undefined') {
     return ['Result was undefined, you must return an object from you handler function']
@@ -296,11 +184,11 @@ function _validateResultRaw (result) {
   return reasonsForRejection
 }
 
-function resultIsValid (result) {
+function resultIsValid(result) {
   return _validateResultRaw(result).length === 0
 }
 
-function getValidationExplanationForRequest (result) {
+function getValidationExplanationForRequest(result) {
   const rawResults = _validateResultRaw(result)
   if (rawResults.length === 0) {
     return 'Something went wrong while validating :('
@@ -308,8 +196,8 @@ function getValidationExplanationForRequest (result) {
   return rawResults.join(', ')
 }
 
-function getHeadersFromResult (result) {
-  const headers = typeof result?.body === 'object' ? { 'Content-Type': 'application/json' } : {}
+function getHeadersFromResult(result) {
+  const headers = typeof result?.body === 'object' ? {'Content-Type': 'application/json'} : {}
   Object.keys(result?.headers || {}).forEach(key => {
     headers[key] = result.headers[key]
   })
@@ -352,17 +240,14 @@ const server = http.createServer((req, res) => {
         error.result = result
         issueErrorResponse(error, false, res)
       } else {
+        res.writeHead(result.statusCode, getHeadersFromResult(result))
+        responseInitiated = true
+
         if (typeof result.body === 'object') {
-          res.writeHead(result.statusCode, getHeadersFromResult(result))
-          responseInitiated = true
           res.end(JSON.stringify(result.body))
         } else if (result.body) {
-          res.writeHead(result.statusCode, getHeadersFromResult(result))
-          responseInitiated = true
           res.end(result.body)
         } else {
-          res.writeHead(result.statusCode, getHeadersFromResult(result))
-          responseInitiated = true
           res.end()
         }
       }
