@@ -221,6 +221,65 @@ testRunConfigs.forEach(config => {
     assert.equal(statusCode, responseStatusCode, `Response from [${fullMockUrl}] was [${responseStatusCode}], expected [${statusCode}]`)
     assert.deepEqual(fakeBody, responseBody)
   })
+  it(`should allow partial query string matching in predicates (${config.name})`, async () => {
+    const url = '/example'
+    await setupImposters(config, {
+      port: mockPort,
+      protocol: 'http',
+      defaultResponse: { statusCode: 404, body: 'Default 404', headers: {} },
+      stubs: [
+        {
+          name: `The name doesn't matter (unique: ${Math.random()})`,
+          predicates: [
+            {
+              equals: {
+                method: 'GET',
+                path: url,
+                query: {
+                  a: 'b'
+                }
+              }
+            }
+          ],
+          responses: [
+            {
+              is: {
+                statusCode: 200,
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: {
+                  hello: 'world'
+                }
+              }
+            }
+          ]
+        }
+      ]
+    })
+
+    const fullMockUrl = config.mockedHttpBaseUrl + url
+    const acceptableQueryStrings = [
+      'a=b',
+      'a=b&c=d',
+      'c=d&a=b'
+    ]
+    const unacceptableQueryStrings = [
+      'a=bcd',
+      'bca=b',
+      'c=d&e=f'
+    ]
+    await Promise.all(acceptableQueryStrings.map(async (queryString) => {
+      const successResult = await fetch(fullMockUrl + '?' + queryString)
+
+      assert.equal(200, successResult.status, `Expected a success response from [${fullMockUrl}], got a [${successResult.status}]`)
+    }))
+    await Promise.all(unacceptableQueryStrings.map(async (queryString) => {
+      const successResult = await fetch(fullMockUrl + '?' + queryString)
+
+      assert.equal(404, successResult.status, `Expected a failure response from [${fullMockUrl}], got a [${successResult.status}]`)
+    }))
+  })
   it(`should allow body matching in predicates (${config.name})`, async () => {
     const uri = '/v1/api/services/a-service-external-id'
     await setupImposters(config, {
