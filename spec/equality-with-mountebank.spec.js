@@ -263,7 +263,8 @@ testRunConfigs.forEach(config => {
     const fullMockUrl = config.mockedHttpBaseUrl + url
     const acceptableQueryStrings = [
       'a=b&c=d&e=f',
-      'e=f&a=b&c=d'
+      'e=f&a=b&c=d',
+      'e=f&a=b&c=d&'
     ]
     const unacceptableQueryStrings = [
       'something=true&a=b&example=here&c=d&hello=world&e=f',
@@ -372,6 +373,7 @@ testRunConfigs.forEach(config => {
     const acceptableQueryStrings = [
       'a=b&c=d&e=f',
       'e=f&a=b&c=d',
+      'e=f&a=b&c=d&',
       'something=true&a=b&example=here&c=d&hello=world&e=f'
     ]
     const unacceptableQueryStrings = [
