@@ -27,7 +27,7 @@ const mountebankConfig = {
   mockPort
 }
 const selfConfig = {
-  name: 'http-configurable-mock-server',
+  name: 'run-amock',
   imposterSetupUrl: 'http://localhost:9999/__add-mock-endpoints__',
   imposterClearUrl: 'http://localhost:9999/__clear-mock-endpoints__',
   imposterClearMethod: 'POST',
@@ -280,6 +280,54 @@ testRunConfigs.forEach(config => {
 
       assert.equal(404, successResult.status, `Expected a failure response from [${fullMockUrl}], got a [${successResult.status}] for query string [${queryString}]`)
     }))
+  })
+  it(`should type correct query strings (${config.name})`, async () => {
+    const url = '/example'
+    await setupImposters(config, {
+      port: mockPort,
+      protocol: 'http',
+      defaultResponse: { statusCode: 404, body: 'Default 404', headers: {} },
+      stubs: [
+        {
+          name: `The name doesn't matter (unique: ${Math.random()})`,
+          predicates: [
+            {
+              deepEquals: {
+                method: 'GET',
+                path: url,
+                query: {
+                  "agreement_id": "a-valid-agreement-id",
+                  "display_size": 5,
+                  "account_id": 10,
+                  "page": 1,
+                  "limit_total": true,
+                  "limit_total_size": 5001
+                }
+              }
+            }
+          ],
+          responses: [
+            {
+              is: {
+                statusCode: 200,
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: {
+                  hello: 'world'
+                }
+              }
+            }
+          ]
+        }
+      ]
+    })
+
+    const queryString = '?account_id=10&limit_total=true&limit_total_size=5001&agreement_id=a-valid-agreement-id&page=1&display_size=5';
+    const fullMockUrl = config.mockedHttpBaseUrl + url + queryString
+    const successResult = await fetch(fullMockUrl)
+
+    assert.equal(200, successResult.status, `Expected a success response from [${fullMockUrl}], got a [${successResult.status}] for query string [${queryString}]`)
   })
   it(`should allow partial query string matching in predicates (${config.name})`, async () => {
     const url = '/example'
