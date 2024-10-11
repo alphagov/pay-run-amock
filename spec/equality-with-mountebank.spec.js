@@ -27,9 +27,9 @@ const mountebankConfig = {
   mockPort
 }
 const selfConfig = {
-  name: 'http-configurable-mock-server',
+  name: 'run-amock',
   imposterSetupUrl: 'http://localhost:9999/__add-mock-endpoints__',
-  imposterClearUrl: 'http://localhost:9999/__clear-all-endpoints__',
+  imposterClearUrl: 'http://localhost:9999/__clear-mock-endpoints__',
   imposterClearMethod: 'POST',
   mockedHttpBaseUrl: 'http://localhost:9999',
   mockPort: 9999
@@ -45,7 +45,7 @@ async function httpPatchJson (url, body) {
 
 async function clearAllMocks (config) {
   const result = await fetch(config.imposterClearUrl, { method: config.imposterClearMethod })
-  assert.equal(200, result.status, `Failed to clear all mocks, status code [${result.status}], body [${await result.text()}`)
+  assert.equal(200, result.status, `Failed to clear all mocks, status code [${result.status}], body [${await result.text()}]`)
 }
 
 async function setupImposters (config, imposterSetupBody) {
@@ -221,7 +221,233 @@ testRunConfigs.forEach(config => {
     assert.equal(statusCode, responseStatusCode, `Response from [${fullMockUrl}] was [${responseStatusCode}], expected [${statusCode}]`)
     assert.deepEqual(fakeBody, responseBody)
   })
-  it(`should allow body matching in predicates (${config.name})`, async () => {
+  it(`should allow deep query string matching in predicates (${config.name})`, async () => {
+    const url = '/example'
+    await setupImposters(config, {
+      port: mockPort,
+      protocol: 'http',
+      defaultResponse: { statusCode: 404, body: 'Default 404', headers: {} },
+      stubs: [
+        {
+          name: `The name doesn't matter (unique: ${Math.random()})`,
+          predicates: [
+            {
+              deepEquals: {
+                method: 'GET',
+                path: url,
+                query: {
+                  a: 'b',
+                  c: 'd',
+                  e: 'f'
+                }
+              }
+            }
+          ],
+          responses: [
+            {
+              is: {
+                statusCode: 200,
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: {
+                  hello: 'world'
+                }
+              }
+            }
+          ]
+        }
+      ]
+    })
+
+    const fullMockUrl = config.mockedHttpBaseUrl + url
+    const acceptableQueryStrings = [
+      'a=b&c=d&e=f',
+      'e=f&a=b&c=d',
+      'e=f&a=b&c=d&'
+    ]
+    const unacceptableQueryStrings = [
+      'something=true&a=b&example=here&c=d&hello=world&e=f',
+      'a=b&c=d&e=g',
+      'a=c&c=d&e=g'
+    ]
+    await Promise.all(acceptableQueryStrings.map(async (queryString) => {
+      const successResult = await fetch(fullMockUrl + '?' + queryString)
+
+      assert.equal(200, successResult.status, `Expected a success response from [${fullMockUrl}], got a [${successResult.status}] for query string [${queryString}]`)
+    }))
+    await Promise.all(unacceptableQueryStrings.map(async (queryString) => {
+      const successResult = await fetch(fullMockUrl + '?' + queryString)
+
+      assert.equal(404, successResult.status, `Expected a failure response from [${fullMockUrl}], got a [${successResult.status}] for query string [${queryString}]`)
+    }))
+  })
+  it(`should type correct query strings (${config.name})`, async () => {
+    const url = '/example'
+    await setupImposters(config, {
+      port: mockPort,
+      protocol: 'http',
+      defaultResponse: { statusCode: 404, body: 'Default 404', headers: {} },
+      stubs: [
+        {
+          name: `The name doesn't matter (unique: ${Math.random()})`,
+          predicates: [
+            {
+              deepEquals: {
+                method: 'GET',
+                path: url,
+                query: {
+                  agreement_id: 'a-valid-agreement-id',
+                  display_size: 5,
+                  account_id: 10,
+                  page: 1,
+                  limit_total: true,
+                  limit_total_size: 5001
+                }
+              }
+            }
+          ],
+          responses: [
+            {
+              is: {
+                statusCode: 200,
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: {
+                  hello: 'world'
+                }
+              }
+            }
+          ]
+        }
+      ]
+    })
+
+    const queryString = '?account_id=10&limit_total=true&limit_total_size=5001&agreement_id=a-valid-agreement-id&page=1&display_size=5'
+    const fullMockUrl = config.mockedHttpBaseUrl + url + queryString
+    const successResult = await fetch(fullMockUrl)
+
+    assert.equal(200, successResult.status, `Expected a success response from [${fullMockUrl}], got a [${successResult.status}] for query string [${queryString}]`)
+  })
+  it(`should allow partial query string matching in predicates (${config.name})`, async () => {
+    const url = '/example'
+    await setupImposters(config, {
+      port: mockPort,
+      protocol: 'http',
+      defaultResponse: { statusCode: 404, body: 'Default 404', headers: {} },
+      stubs: [
+        {
+          name: `The name doesn't matter (unique: ${Math.random()})`,
+          predicates: [
+            {
+              equals: {
+                method: 'GET',
+                path: url,
+                query: {
+                  a: 'b',
+                  c: 'd',
+                  e: 'f'
+                }
+              }
+            }
+          ],
+          responses: [
+            {
+              is: {
+                statusCode: 200,
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: {
+                  hello: 'world'
+                }
+              }
+            }
+          ]
+        }
+      ]
+    })
+
+    const fullMockUrl = config.mockedHttpBaseUrl + url
+    const acceptableQueryStrings = [
+      'a=b&c=d&e=f',
+      'e=f&a=b&c=d',
+      'e=f&a=b&c=d&',
+      'something=true&a=b&example=here&c=d&hello=world&e=f'
+    ]
+    const unacceptableQueryStrings = [
+      'a=b&c=d&e=g',
+      'a=c&c=d&e=g'
+    ]
+    await Promise.all(acceptableQueryStrings.map(async (queryString) => {
+      const successResult = await fetch(fullMockUrl + '?' + queryString)
+
+      assert.equal(200, successResult.status, `Expected a success response from [${fullMockUrl}], got a [${successResult.status}]`)
+    }))
+    await Promise.all(unacceptableQueryStrings.map(async (queryString) => {
+      const successResult = await fetch(fullMockUrl + '?' + queryString)
+
+      assert.equal(404, successResult.status, `Expected a failure response from [${fullMockUrl}], got a [${successResult.status}]`)
+    }))
+  })
+  it(`should accept the query string from webhooks test, keys and values are case insensitive in Mountebank (${config.name})`, async () => {
+    await setupImposters(config, {
+      port: mockPort,
+      protocol: 'http',
+      defaultResponse: { statusCode: 404, body: 'Default 404', headers: {} },
+      stubs: [
+        {
+          name: 'GET /v1/webhook/webhook-id/message 200',
+          predicates: [
+            {
+              equals: {
+                method: 'GET',
+                path: '/v1/webhook/webhook-id/message',
+                query: {
+                  page: 1,
+                  status: 'failed'
+                }
+              }
+            }
+          ],
+          responses: [
+            {
+              is: {
+                statusCode: 200,
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: {}
+              }
+            }
+          ]
+        }
+      ]
+    })
+
+    const fullMockUrl = config.mockedHttpBaseUrl + '/v1/webhook/webhook-id/message'
+    const acceptableQueryStrings = [
+      'page=1&status=FAILED',
+      'page=1&STATUS=FAILED',
+      'page=1&status=FaIlEd',
+      'StAtUs=fAiLeD&page=1'
+    ]
+    const unacceptableQueryStrings = [
+      'page=1&status=failed%20'
+    ]
+    await Promise.all(acceptableQueryStrings.map(async (queryString) => {
+      const successResult = await fetch(fullMockUrl + '?' + queryString)
+
+      assert.equal(200, successResult.status, `Expected a success response from [${fullMockUrl}], got a [${successResult.status}] with query string [${queryString}]`)
+    }))
+    await Promise.all(unacceptableQueryStrings.map(async (queryString) => {
+      const successResult = await fetch(fullMockUrl + '?' + queryString)
+
+      assert.equal(404, successResult.status, `Expected a failure response from [${fullMockUrl}], got a [${successResult.status}] with query string [${queryString}]`)
+    }))
+  })
+  it(`should allow deep body matching in predicates (${config.name})`, async () => {
     const uri = '/v1/api/services/a-service-external-id'
     await setupImposters(config, {
       port: mockPort,
@@ -271,14 +497,65 @@ testRunConfigs.forEach(config => {
 
       assert.equal(200, successResult.status, `Expected a success response from [${fullMockUrl}], got a [${successResult.status}]`)
     }))
+  })
+  it(`should allow partial body matching in predicates (${config.name})`, async () => {
+    const uri = '/v1/api/services/a-service-external-id'
+    await setupImposters(config, {
+      port: mockPort,
+      protocol: 'http',
+      defaultResponse: { statusCode: 404, body: 'No stub predicate matches the request', headers: {} },
+      stubs: [{
+        name: `The name doesn't matter (unique: ${Math.random()})`,
+        predicates: [
+          {
+            equals: {
+              method: 'PATCH',
+              path: uri,
+              body: {
+                op: 'replace',
+                path: 'default_billing_address_country',
+                value: 'GB'
+              }
+            }
+          }
+        ],
+        responses: [
+          {
+            is: {
+              statusCode: 200,
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: {
+                matched: true
+              }
+            }
+          }
+        ]
+      }]
+    })
 
-    const unacceptableBodies = [
+    const accepatableBodies = [
+      {
+        op: 'replace',
+        path: 'default_billing_address_country',
+        value: 'GB'
+      },
       {
         op: 'replace',
         path: 'default_billing_address_country',
         value: 'GB',
         extra: true
-      },
+      }
+    ]
+    const fullMockUrl = config.mockedHttpBaseUrl + uri
+    await Promise.all(accepatableBodies.map(async (body) => {
+      const successResult = await httpPatchJson(fullMockUrl, body)
+
+      assert.equal(200, successResult.status, `Expected a success response from [${fullMockUrl}], got a [${successResult.status}] for body [${JSON.stringify(body)}]`)
+    }))
+
+    const unacceptableBodies = [
       {
         op: 'replace',
         path: 'default_billing_address_country',
@@ -288,7 +565,7 @@ testRunConfigs.forEach(config => {
     await Promise.all(unacceptableBodies.map(async (body) => {
       const successResult = await httpPatchJson(fullMockUrl, body)
 
-      assert.equal(404, successResult.status, `Expected a failure response from [${fullMockUrl}], got a [${successResult.status}]`)
+      assert.equal(404, successResult.status, `Expected a failure response from [${fullMockUrl}], got a [${successResult.status}] for body [${JSON.stringify(body)}]`)
     }))
   })
   it(`should allow deep matching for body (${config.name})`, async () => {
