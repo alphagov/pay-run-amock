@@ -1,5 +1,5 @@
 import * as net from 'node:net'
-import {afterEach, beforeEach, describe, it} from 'node:test'
+import { afterEach, beforeEach, describe, it } from 'node:test'
 import * as assert from 'node:assert'
 
 async function findAvailablePort () {
@@ -269,7 +269,7 @@ testRunConfigs.forEach(config => {
     const unacceptableQueryStrings = [
       'something=true&a=b&example=here&c=d&hello=world&e=f',
       'a=b&c=d&e=g',
-      'a=c&c=d&e=g',
+      'a=c&c=d&e=g'
     ]
     await Promise.all(acceptableQueryStrings.map(async (queryString) => {
       const successResult = await fetch(fullMockUrl + '?' + queryString)
@@ -297,12 +297,12 @@ testRunConfigs.forEach(config => {
                 method: 'GET',
                 path: url,
                 query: {
-                  "agreement_id": "a-valid-agreement-id",
-                  "display_size": 5,
-                  "account_id": 10,
-                  "page": 1,
-                  "limit_total": true,
-                  "limit_total_size": 5001
+                  agreement_id: 'a-valid-agreement-id',
+                  display_size: 5,
+                  account_id: 10,
+                  page: 1,
+                  limit_total: true,
+                  limit_total_size: 5001
                 }
               }
             }
@@ -324,7 +324,7 @@ testRunConfigs.forEach(config => {
       ]
     })
 
-    const queryString = '?account_id=10&limit_total=true&limit_total_size=5001&agreement_id=a-valid-agreement-id&page=1&display_size=5';
+    const queryString = '?account_id=10&limit_total=true&limit_total_size=5001&agreement_id=a-valid-agreement-id&page=1&display_size=5'
     const fullMockUrl = config.mockedHttpBaseUrl + url + queryString
     const successResult = await fetch(fullMockUrl)
 
@@ -378,7 +378,7 @@ testRunConfigs.forEach(config => {
     ]
     const unacceptableQueryStrings = [
       'a=b&c=d&e=g',
-      'a=c&c=d&e=g',
+      'a=c&c=d&e=g'
     ]
     await Promise.all(acceptableQueryStrings.map(async (queryString) => {
       const successResult = await fetch(fullMockUrl + '?' + queryString)
@@ -398,27 +398,27 @@ testRunConfigs.forEach(config => {
       defaultResponse: { statusCode: 404, body: 'Default 404', headers: {} },
       stubs: [
         {
-          "name": "GET /v1/webhook/webhook-id/message 200",
-          "predicates": [
+          name: 'GET /v1/webhook/webhook-id/message 200',
+          predicates: [
             {
-              "equals": {
-                "method": "GET",
-                "path": "/v1/webhook/webhook-id/message",
-                "query": {
-                  "page": 1,
-                  "status": "failed"
+              equals: {
+                method: 'GET',
+                path: '/v1/webhook/webhook-id/message',
+                query: {
+                  page: 1,
+                  status: 'failed'
                 }
               }
             }
           ],
-          "responses": [
+          responses: [
             {
-              "is": {
-                "statusCode": 200,
-                "headers": {
-                  "Content-Type": "application/json"
+              is: {
+                statusCode: 200,
+                headers: {
+                  'Content-Type': 'application/json'
                 },
-                "body": {}
+                body: {}
               }
             }
           ]
@@ -452,7 +452,7 @@ testRunConfigs.forEach(config => {
     await setupImposters(config, {
       port: mockPort,
       protocol: 'http',
-      defaultResponse: {statusCode: 404, body: 'No stub predicate matches the request', headers: {}},
+      defaultResponse: { statusCode: 404, body: 'No stub predicate matches the request', headers: {} },
       stubs: [{
         name: `The name doesn't matter (unique: ${Math.random()})`,
         predicates: [
