@@ -11,14 +11,14 @@ jobs:
   unit-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
+      - name: Setup Node
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c
         with:
-          fetch-depth: 0
-      - name: Use Node
-        uses: actions/setup-node@v4
-        with:
+          node-version-file: '.nvmrc'
           cache: 'npm'
-          node-version: 20.18.0
+          cache-dependency-path: 'package-lock.json'
       - name: Start server
         run: npm start && sleep 1 &
       - name: Run tests
