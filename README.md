@@ -109,3 +109,10 @@ What would happen if you only set up one endpoint like `/a`, then you make a req
 
 The response from `/b` will be an empty `200` ... that's a strange default.  Defaults can be overridden in Montebank
 (and this tool) but it seems strange to me that the default isn't a `404` like a 'normal' web server would give.
+## Licence
+
+[MIT License](LICENSE)
+
+## Vulnerability Disclosure
+
+GOV.UK Pay aims to stay secure for everyone. If you are a security researcher and have discovered a security vulnerability in this code, we appreciate your help in disclosing it to us in a responsible manner. Please refer to our [vulnerability disclosure policy](https://www.gov.uk/help/report-vulnerability) and our [security.txt](https://vdp.cabinetoffice.gov.uk/.well-known/security.txt) file for details.
