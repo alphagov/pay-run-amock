@@ -20,6 +20,6 @@ jobs:
           cache: 'npm'
           node-version: 20.18.0
       - name: Start server
-        run: npm start
+        run: npm start && sleep 1 &
       - name: Run tests
         run: npm test
