@@ -6,7 +6,7 @@
     "test": "node spec/all.spec.js"
   },
   "bin": {
-    "run-amock": "bin/run"
+    "run-amock": "bin/run.js"
   },
   "keywords": [
     "http",
