@@ -8,7 +8,12 @@
   "bin": {
     "run-amock": "bin/run"
   },
-  "keywords": ["http", "mock", "govuk", "GOV.UK"],
+  "keywords": [
+    "http",
+    "mock",
+    "govuk",
+    "GOV.UK"
+  ],
   "author": "Natalie Carey <natalie.carey@digital.cabinet-office.gov.uk>",
   "license": "MIT",
   "description": "A drop-in replacement for Mountebank in our govuk-pay codebases."
