@@ -46,7 +46,7 @@ describe('equality-with-mountebank', () => {
     const fullMockUrl = mockedHttpBaseUrl + '/v1/webhook/webhook-id/message'
     const acceptableQueryStrings = [
       'page=1&status=failed',
-      'status=failed&page=12'
+      'status=failed&page=1'
     ]
     const unacceptableQueryStrings = [
       'page=1&status=FAILED',
