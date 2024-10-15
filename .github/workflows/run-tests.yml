@@ -19,5 +19,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'npm'
           cache-dependency-path: 'package-lock.json'
+      - name: Start server
+        run: npm start
       - name: Run tests
         run: npm test
