@@ -79,11 +79,11 @@ Changes we've already made that diverge from Mountebank
 
 ### Case sensitive query strings
 
-Mountebank uses case insensitive query strings, both for keys and values.  This will hide problems. We've 
+Mountebank uses case-insensitive query strings, both for keys and values.  This will hide problems. From version `0.0.2`
+we treat query strings as case-sensitive.
 
-If we can write a mock for an API call with the query string `?page=1&status=failed`, then use it with a query string
-`?page=1&sTaTuS=fAiLeD` then it's not going to work in production but the mock will treat those as equivalent.  I would
-like the see this changed as a priority.
+What that means in practice is that a mock set up with `?page=1&status=failed` will no longer match a request with
+`?page=1&sTaTuS=fAiLeD`.
 
 
 What would you change if you could?
