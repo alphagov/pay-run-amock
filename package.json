@@ -3,13 +3,17 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "test": "node spec/equality-with-mountebank.spec.js"
+    "test": "node spec/all.spec.js"
   },
   "bin": {
-    "run-amock": "bin/run"
+    "run-amock": "bin/run.js"
   },
-  "keywords": ["http", "mock", "govuk", "GOV.UK"],
-  "author": "Natalie Carey <natalie.carey@digital.cabinet-office.gov.uk>",
+  "keywords": [
+    "http",
+    "mock",
+    "govuk",
+    "GOV.UK"
+  ],
   "license": "MIT",
   "description": "A drop-in replacement for Mountebank in our govuk-pay codebases."
 }
