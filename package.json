@@ -14,6 +14,7 @@
     "govuk",
     "GOV.UK"
   ],
+  "repository": "https://github.com/alphagov/pay-run-amock",
   "license": "MIT",
   "description": "A drop-in replacement for Mountebank in our govuk-pay codebases."
 }
