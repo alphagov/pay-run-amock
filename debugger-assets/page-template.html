@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Run Amock</title>
+    <link rel="stylesheet" href="/__debugger__/css-boilerplate.css">
+    <link rel="stylesheet" href="/__debugger__/style.css">
+    <link rel="icon" href="/__debugger__/favicon.ico">
+</head>
+<body>
+<header>
+    <h1>Run Amock</h1>
+    <h2>A project by GOV.UK Pay</h2>
+    <p>Welcome to the debugger page, for more info about the project visit <a
+            href="https://www.npmjs.com/package/@govuk-pay/run-amock/v/{{runAmockVersion}}">the NPM page for this
+        release (v{{runAmockVersion}})</a></p>
+    <h3><a href="#"
+
+           data-dom-widget="showHideToggle"
+           data-toggle-element-id="about-text"
+           data-abc-def="hello">How the debugger works</a></h3>
+    <ul id="about-text" style="display: none;">
+        <li>Nothing changes between reloads</li>
+        <li>We show a snapshot in time for you to take a detailed look at</li>
+        <li>We try to provide you with the information you need, if you don't see what you're lookng for (and you're
+            part of the GOV.UK Pay team) let's chat about adding more features
+        </li>
+    </ul>
+</header>
+<script src="/__debugger__/client-side-script.js"></script>
+<main>
+    <div class="tabs"
+         data-dom-widget="tabs"
+         data-tab-class="tabs__tab"
+         data-content-class="tabs__content"
+         data-content-id-attribute="data-tab-content-id">
+        <nav class="tabs__tab-list">
+            <ul>
+                <li><a href="#tab1" class="tabs__tab" data-tab-content-id="tab-1">Latest mock request</a></li>
+                <li><a href="#tab2" class="tabs__tab" data-tab-content-id="tab-2">Internal State</a></li>
+                <li><a href="#tab3" class="tabs__tab" data-tab-content-id="tab-3">Visited mocks</a></li>
+                <li><a href="#tab4" class="tabs__tab" data-tab-content-id="tab-4">Unvisited mocks</a></li>
+            </ul>
+        </nav>
+        <div id="tab-1" class="tabs__content">{{latestMockRequest}}</div>
+        <div id="tab-2" class="tabs__content">{{internalState}}</div>
+        <div id="tab-3" class="tabs__content">{{visitedMocks}}</div>
+        <div id="tab-4" class="tabs__content">{{unvisitedMocks}}</div>
+    </div>
+</main>
+</body>
+</html>
