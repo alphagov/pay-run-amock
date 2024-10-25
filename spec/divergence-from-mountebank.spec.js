@@ -1,8 +1,7 @@
-import * as net from 'node:net'
-import {afterEach, beforeEach, describe, it} from 'node:test'
+import { afterEach, beforeEach, describe, it } from 'node:test'
 import * as assert from 'node:assert'
-import {clearAllMocks, setupMocks} from "./utils.js";
-import {mockedHttpBaseUrl} from "./constants.js";
+import { clearAllMocks, setupMocks } from './utils.js'
+import { mockedHttpBaseUrl } from './constants.js'
 
 describe('equality-with-mountebank', () => {
   beforeEach(async () => {
@@ -11,9 +10,9 @@ describe('equality-with-mountebank', () => {
   afterEach(async () => {
     await clearAllMocks()
   })
-  it(`should require query strings to be case sensitive using equals`, async () => {
+  it('should require query strings to be case sensitive using equals', async () => {
     await setupMocks({
-      defaultResponse: {statusCode: 404, body: 'Default 404', headers: {}},
+      defaultResponse: { statusCode: 404, body: 'Default 404', headers: {} },
       stubs: [
         {
           predicates: [
@@ -66,5 +65,4 @@ describe('equality-with-mountebank', () => {
       assert.equal(404, successResult.status, `Expected a failure response from [${fullMockUrl}], got a [${successResult.status}] with query string [${queryString}]`)
     }))
   })
-
 })

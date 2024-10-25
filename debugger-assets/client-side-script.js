@@ -69,7 +69,6 @@ const domWidgets = {
   }
 }
 
-
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('[data-dom-widget]').forEach(($elem) => {
     const widgetName = $elem.getAttribute('data-dom-widget')
@@ -82,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
           .slice(1)
           .map((value, index) => index === 0 ? value : value.at(0).toUpperCase() + value.substring(1))
           .join('')
-        return Object.assign({}, accumulator, {[keyName]: $elem.getAttribute(attrName)})
+        return Object.assign({}, accumulator, { [keyName]: $elem.getAttribute(attrName) })
       }, {})
       handler($elem, config)
     } else {
