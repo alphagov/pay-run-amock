@@ -82,5 +82,7 @@ p {
 }
 
 code {
+    background: transparent;
+    display: block;
     font-size: 0.9rem;
 }

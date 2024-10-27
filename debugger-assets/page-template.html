@@ -39,16 +39,27 @@
         <nav class="tabs__tab-list">
             <ul>
                 <li><a href="#last-mock-state" class="tabs__tab" data-tab-content-id="last-mock-state">Latest mock request</a></li>
-                <li><a href="#internal-state" class="tabs__tab" data-tab-content-id="internal-state">Internal State</a></li>
                 <li><a href="#visited-mocks" class="tabs__tab" data-tab-content-id="visited-mocks">Visited mocks</a></li>
                 <li><a href="#unvisited-mocks" class="tabs__tab" data-tab-content-id="unvisited-mocks">Unvisited mocks</a></li>
+                <li><a href="#unmatched-requests" class="tabs__tab" data-tab-content-id="unmatched-requests">Unmatched mocks</a></li>
                 <li><a href="#snapshots" class="tabs__tab" data-tab-content-id="snapshots">Snapshots</a></li>
             </ul>
         </nav>
-        <div id="last-mock-state" class="tabs__content">{{latestMockRequest}}</div>
-        <div id="internal-state" class="tabs__content">{{internalState}}</div>
-        <div id="visited-mocks" class="tabs__content">{{visitedMocks}}</div>
-        <div id="unvisited-mocks" class="tabs__content">{{unvisitedMocks}}</div>
+        <div id="last-mock-state" class="tabs__content">
+            {{latestMockRequest}}
+        </div>
+        <div id="internal-state" class="tabs__content">
+            {{internalState}}
+        </div>
+        <div id="visited-mocks" class="tabs__content">
+            {{visitedMocks}}
+        </div>
+        <div id="unvisited-mocks" class="tabs__content">
+            {{unvisitedMocks}}
+        </div>
+        <div id="unmatched-requests" class="tabs__content">
+            {{unmatchedRequests}}
+        </div>
         <div id="snapshots" class="tabs__content">
             <p>You can create a snapshot by making a <strong>POST</strong> request to <strong>/__create-debug-snapshot__</strong></p>
             <p>You can name your snapshot by including a body of <strong>{"name": "something"}</strong>.</p>
