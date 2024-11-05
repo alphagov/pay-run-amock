@@ -1,10 +1,10 @@
-import { imposterClearUrl, imposterSetupUrl, snapshotClearUrl} from './constants.js'
+import { imposterClearUrl, imposterSetupUrl, snapshotClearUrl } from './constants.js'
 import * as assert from 'node:assert'
 
-async function emptyPostToUrl(url) {
+async function emptyPostToUrl (url) {
   let result
   try {
-    result = await fetch(url, {method: 'POST'})
+    result = await fetch(url, { method: 'POST' })
   } catch (error) {
     throw new Error(`Failed to make request to [${url}]`, error)
   }
@@ -33,17 +33,17 @@ export async function httpPatchJson (url, body) {
   return await fetch(url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
 }
 
-function getLinesBetween(lines, startLineContents, endLineContents) {
+function getLinesBetween (lines, startLineContents, endLineContents) {
   const startOfSnapshotTabContents = lines.findIndex(line => line.includes(startLineContents))
   const endOfSnapshotTabContents = lines.findIndex((line, index) => index > startOfSnapshotTabContents && line.includes(endLineContents))
-  return [...lines].slice(startOfSnapshotTabContents +1, endOfSnapshotTabContents)
+  return [...lines].slice(startOfSnapshotTabContents + 1, endOfSnapshotTabContents)
 }
 
-function getTabContentsById(lines, id) {
-  return getLinesBetween(lines, `<div id="${id}" class="tabs__content">`, '</div>').join('\n');
+function getTabContentsById (lines, id) {
+  return getLinesBetween(lines, `<div id="${id}" class="tabs__content">`, '</div>').join('\n')
 }
 
-function stripHtml(htmlIn) {
+function stripHtml (htmlIn) {
   return htmlIn
     .replaceAll(/(<(?:p|br|div|li))/g, '\n$1')
     .replaceAll(/<[^>]+>/g, '')
@@ -52,7 +52,7 @@ function stripHtml(htmlIn) {
     .trim()
 }
 
-export function parseWebsiteResponse(htmlStr) {
+export function parseWebsiteResponse (htmlStr) {
   const output = {
     tabs: {},
     snapshots: []
@@ -86,13 +86,13 @@ export function parseWebsiteResponse(htmlStr) {
   return output
 }
 
-export function parseJsonRemoveDate(str) {
-  const parsed = JSON.parse(str);
+export function parseJsonRemoveDate (str) {
+  const parsed = JSON.parse(str)
   return deepObjectWithoutKeys(parsed, ['lastUsedDate'])
 }
 
-function deepObjectWithoutKeys(obj, keysToRemove) {
-  function getValue(value) {
+function deepObjectWithoutKeys (obj, keysToRemove) {
+  function getValue (value) {
     if (Array.isArray(value)) {
       return value.map(x => getValue(x))
     }
@@ -110,4 +110,3 @@ function deepObjectWithoutKeys(obj, keysToRemove) {
     return acc
   }, {})
 }
-

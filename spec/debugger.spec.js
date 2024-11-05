@@ -1,4 +1,4 @@
-import {afterEach, beforeEach, describe, it} from 'node:test'
+import { afterEach, beforeEach, describe, it } from 'node:test'
 import * as assert from 'node:assert'
 import {
   clearAllMocks,
@@ -8,13 +8,13 @@ import {
   parseWebsiteResponse,
   setupMocks
 } from './utils.js'
-import {createSnapshotUrl, debuggerUrl, mockedHttpBaseUrl} from './constants.js'
+import { createSnapshotUrl, debuggerUrl, mockedHttpBaseUrl } from './constants.js'
 
 console.clear()
 
-async function setupStandardMocks() {
+async function setupStandardMocks () {
   const imposterSetupBody = {
-    defaultResponse: {statusCode: 404, body: 'Default 404', headers: {}},
+    defaultResponse: { statusCode: 404, body: 'Default 404', headers: {} },
     stubs: [
       {
         predicates: [
@@ -42,31 +42,31 @@ async function setupStandardMocks() {
         ]
       }
     ]
-  };
+  }
   await setupMocks(imposterSetupBody)
   return imposterSetupBody
 }
 
-async function createSnapshot(name) {
+async function createSnapshot (name) {
   const createSnapshotResult = await httpPostJson(createSnapshotUrl, {
     name
   })
 
   assert.equal(200, createSnapshotResult.status, `Expected a failure response from [${createSnapshotUrl}], got a [${(await createSnapshotResult.text())}]`)
-  return createSnapshotResult;
+  return createSnapshotResult
 }
 
-async function getDebuggerPageInfo(url) {
+async function getDebuggerPageInfo (url) {
   const result = await fetch(url || debuggerUrl)
   const html = await result.text()
 
   assert.equal(200, result.status, `Expected a failure response from [${createSnapshotUrl}], got a [${html}]`)
 
-  return parseWebsiteResponse(html);
+  return parseWebsiteResponse(html)
 }
 
-async function getPageInfoForSnapshot(snapshotName) {
-  const response = await fetch(debuggerUrl);
+async function getPageInfoForSnapshot (snapshotName) {
+  const response = await fetch(debuggerUrl)
   const pageInfo = parseWebsiteResponse(await response.text())
   const snapshotFromPage = pageInfo.snapshots.filter(x => x.name === snapshotName)
   if (snapshotFromPage.length === 0) {
@@ -79,7 +79,7 @@ async function getPageInfoForSnapshot(snapshotName) {
   const initialSnapshotRequest = await fetch(initialSnapshotUrl)
   const initialSnapshotPageHtml = await initialSnapshotRequest.text()
   assert.equal(200, initialSnapshotRequest.status, `Expected a failure response from [${initialSnapshotUrl}], got a [${initialSnapshotPageHtml}]`)
-  return parseWebsiteResponse(initialSnapshotPageHtml);
+  return parseWebsiteResponse(initialSnapshotPageHtml)
 }
 
 describe('equality-with-mountebank', () => {
@@ -133,7 +133,7 @@ describe('equality-with-mountebank', () => {
           ]
         }
       ]
-      ,
+
     }
 
     await setupMocks(secondJsonBody)
@@ -155,7 +155,7 @@ describe('equality-with-mountebank', () => {
     await setupStandardMocks()
 
     await createSnapshot('initial')
-    
+
     await fetch(mockedHttpBaseUrl + '/example?page=1&status=failed2-this-will-not-be-matched', {
       headers: {
         'X-Something-Custom': 'abcdefg'
@@ -183,30 +183,30 @@ describe('equality-with-mountebank', () => {
       }
     }, parseJsonRemoveDate(second.tabs.visitedMocksContentsWithoutHtml))
     assert.deepEqual({
-        GET: {
-          '/example': [
-            {
-              body: {},
-              callCount: 1,
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              isDeepEquals: false,
-              queryObj: {
-                page: '1',
-                status: 'failed'
-              },
-              statusCode: 200
-            }
-          ]
-        },
-        __default__: {
-          body: 'Default 404',
-          callCount: 1,
-          headers: {},
-          statusCode: 404
-        }
-      }, parseJsonRemoveDate(third.tabs.visitedMocksContentsWithoutHtml))
+      GET: {
+        '/example': [
+          {
+            body: {},
+            callCount: 1,
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            isDeepEquals: false,
+            queryObj: {
+              page: '1',
+              status: 'failed'
+            },
+            statusCode: 200
+          }
+        ]
+      },
+      __default__: {
+        body: 'Default 404',
+        callCount: 1,
+        headers: {},
+        statusCode: 404
+      }
+    }, parseJsonRemoveDate(third.tabs.visitedMocksContentsWithoutHtml))
 
     // unvisited mocks
     assert.deepEqual({
@@ -258,24 +258,24 @@ describe('equality-with-mountebank', () => {
     // unmatched routes
     const populatedUnmatchedRequests = [
       {
-        "method": "GET",
-        "url": "/example",
-        "headers": {
-          "host": "localhost:9999",
-          "connection": "keep-alive",
-          "accept": "*/*",
-          "accept-language": "*",
-          "sec-fetch-mode": "cors",
-          "user-agent": "node",
-          "x-something-custom": 'abcdefg',
-          "accept-encoding": "gzip, deflate"
+        method: 'GET',
+        url: '/example',
+        headers: {
+          host: 'localhost:9999',
+          connection: 'keep-alive',
+          accept: '*/*',
+          'accept-language': '*',
+          'sec-fetch-mode': 'cors',
+          'user-agent': 'node',
+          'x-something-custom': 'abcdefg',
+          'accept-encoding': 'gzip, deflate'
         },
-        "queryObj": {
-          "page": "1",
-          "status": "failed2-this-will-not-be-matched"
+        queryObj: {
+          page: '1',
+          status: 'failed2-this-will-not-be-matched'
         }
       }
-    ];
+    ]
     assert.deepEqual(populatedUnmatchedRequests, JSON.parse(third.tabs.unmatchedRequestsContentsWithoutHtml))
     assert.deepEqual(populatedUnmatchedRequests, JSON.parse(second.tabs.unmatchedRequestsContentsWithoutHtml))
     assert.deepEqual([], JSON.parse(first.tabs.unmatchedRequestsContentsWithoutHtml))
