@@ -1,6 +1,6 @@
 // Note - this is my standard 'one function Javascript Framework' ... I handwrite it every time though, I should really standardise it.  (From Natalie Carey)
 //
-// Add handlers here, for example myExampleBehaviour($elem, config) would be triggered with:
+// Add handlers to `domWidgets` object, for example `myExampleBehaviour: ($elem, config) => {}` would be triggered with:
 //
 // <p data-dom-widget="myExampleBehaviour"></p>
 // <a href="#" data-dom-widget="myExampleBehaviour" data-extra-param="something"></a>
@@ -8,11 +8,11 @@
 //
 // In the above examples the calls would be (matching the order above)
 //
-// $elem = (that paragraph), config = {}
-// $elem = (that link), config = {extraParams="something"}
-// $elem = (that h1), config = {}
+// $elem = (the paragraph element), config = {}
+// $elem = (the link element), config = {extraParams="something"}
+// $elem = (the h1 element), config = {}
 //
-// Note the conversion from 'data-extra-param' to 'config.extraParam'
+// Note the conversion from 'data-extra-param' to 'extraParam'
 //
 // (Natalie just wrote a comment in code -  it must be important)
 

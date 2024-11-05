@@ -65,14 +65,17 @@ async function getDebuggerPageInfo(url) {
   return parseWebsiteResponse(html);
 }
 
-async function getPageInfoForSnapshot(firstSnapshotName) {
+async function getPageInfoForSnapshot(snapshotName) {
   const response = await fetch(debuggerUrl);
   const pageInfo = parseWebsiteResponse(await response.text())
-  const initialSnapshotFromPage = pageInfo.snapshots.filter(x => x.name === firstSnapshotName)
-  if (initialSnapshotFromPage.length !== 1) {
-    throw new Error(`Expected one snapshot to include "initial", but got [${initialSnapshotFromPage.length}]: [${initialSnapshotFromPage.map(x => x.name).join(', ')}]`)
+  const snapshotFromPage = pageInfo.snapshots.filter(x => x.name === snapshotName)
+  if (snapshotFromPage.length === 0) {
+    throw new Error(`Expected one snapshot to include "${snapshotName}", none matched: [${pageInfo.snapshots.map(x => x.name).join(', ')}]`)
   }
-  const initialSnapshotUrl = mockedHttpBaseUrl + initialSnapshotFromPage[0].url
+  if (snapshotFromPage.length > 1) {
+    throw new Error(`Expected one snapshot to include "${snapshotName}", but got [${snapshotFromPage.length}]: [${snapshotFromPage.map(x => x.name).join(', ')}]`)
+  }
+  const initialSnapshotUrl = mockedHttpBaseUrl + snapshotFromPage[0].url
   const initialSnapshotRequest = await fetch(initialSnapshotUrl)
   const initialSnapshotPageHtml = await initialSnapshotRequest.text()
   assert.equal(200, initialSnapshotRequest.status, `Expected a failure response from [${initialSnapshotUrl}], got a [${initialSnapshotPageHtml}]`)
@@ -153,7 +156,11 @@ describe('equality-with-mountebank', () => {
 
     await createSnapshot('initial')
     
-    await fetch(mockedHttpBaseUrl + '/example?page=1&status=failed2-this-will-not-be-matched')
+    await fetch(mockedHttpBaseUrl + '/example?page=1&status=failed2-this-will-not-be-matched', {
+      headers: {
+        'X-Something-Custom': 'abcdefg'
+      }
+    })
 
     await createSnapshot('second')
 
@@ -260,6 +267,7 @@ describe('equality-with-mountebank', () => {
           "accept-language": "*",
           "sec-fetch-mode": "cors",
           "user-agent": "node",
+          "x-something-custom": 'abcdefg',
           "accept-encoding": "gzip, deflate"
         },
         "queryObj": {

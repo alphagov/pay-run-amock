@@ -1,4 +1,4 @@
-import {createSnapshotUrl, imposterClearUrl, imposterSetupUrl, snapshotClearUrl} from './constants.js'
+import { imposterClearUrl, imposterSetupUrl, snapshotClearUrl} from './constants.js'
 import * as assert from 'node:assert'
 
 async function emptyPostToUrl(url) {
