@@ -1,12 +1,11 @@
   ;[...document.querySelectorAll('[data-dom-widget="showHideToggle"]')].forEach($elem => {
-    const toggleElementId = $elem.data('data-toggle-element-id');
-    if (!toggleElementId) {
+    if (!$elem.data('data-toggle-element-id')) {
       console.log('No data-toggle-element-id', $elem)
       return
     }
-    const $toggleElem = document.getElementById(toggleElementId)
+    const $toggleElem = document.getElementById($elem.data('data-toggle-element-id'))
     if (!$toggleElem) {
-      console.log('No element with ID', toggleElementId)
+      console.log('No element with ID', $elem.data('data-toggle-element-id'))
       return
     }
     $elem.addEventListener('click', (e) => {
