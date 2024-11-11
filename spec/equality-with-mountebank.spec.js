@@ -1,8 +1,8 @@
 import * as net from 'node:net'
 import { afterEach, beforeEach, describe, it } from 'node:test'
 import * as assert from 'node:assert'
-import {imposterClearUrl, imposterSetupUrl} from "./constants.js";
-import {httpPostJson, httpPatchJson} from "./utils.js";
+import { imposterClearUrl, imposterSetupUrl } from './constants.js'
+import { httpPostJson, httpPatchJson } from './utils.js'
 
 async function findAvailablePort () {
   return await new Promise((resolve) => {
