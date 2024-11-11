@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Run Amock</title>
+    <link rel="stylesheet" href="/__debugger__/css-boilerplate.css">
+    <link rel="stylesheet" href="/__debugger__/style.css">
+    <link rel="icon" href="/__debugger__/favicon.ico">
+</head>
+<body>
+<header>
+    <h1>Run Amock</h1>
+    <h2>A project by GOV.UK Pay</h2>
+    <p>Welcome to the debugger page, for more info about the project visit <a
+            href="https://www.npmjs.com/package/@govuk-pay/run-amock/v/{{runAmockVersion}}">the NPM page for this
+        release (v{{runAmockVersion}})</a></p>
+    <p><a href="#"
+
+           data-dom-widget="showHideToggle"
+           data-toggle-element-id="about-text"
+           data-abc-def="hello">How the debugger works</a></p>
+    <ul id="about-text" style="display: none;">
+        <li>Nothing changes between reloads</li>
+        <li>We show a snapshot in time for you to take a detailed look at</li>
+        <li>We try to provide you with the information you need, if you don't see what you're lookng for (and you're
+            part of the GOV.UK Pay team) let's chat about adding more features
+        </li>
+    </ul>
+    {{viewingSnapshotHtml}}
+</header>
+<main>
+    <div class="tabs"
+         data-dom-widget="tabs"
+         data-tab-class="tabs__tab"
+         data-content-class="tabs__content"
+         data-content-id-attribute="data-tab-content-id">
+        <nav class="tabs__tab-list">
+            <ul>
+                <li><a href="#last-mock-state" class="tabs__tab" data-tab-content-id="last-mock-state">Latest mock request</a></li>
+                <li><a href="#visited-mocks" class="tabs__tab" data-tab-content-id="visited-mocks">Visited mocks</a></li>
+                <li><a href="#unvisited-mocks" class="tabs__tab" data-tab-content-id="unvisited-mocks">Unvisited mocks</a></li>
+                <li><a href="#unmatched-requests" class="tabs__tab" data-tab-content-id="unmatched-requests">Unmatched requests</a></li>
+                <li><a href="#snapshots" class="tabs__tab" data-tab-content-id="snapshots">Snapshots</a></li>
+            </ul>
+        </nav>
+        <div id="last-mock-state" class="tabs__content">
+            {{latestMockRequest}}
+        </div>
+        <div id="internal-state" class="tabs__content">
+            {{internalState}}
+        </div>
+        <div id="visited-mocks" class="tabs__content">
+            {{visitedMocks}}
+        </div>
+        <div id="unvisited-mocks" class="tabs__content">
+            {{unvisitedMocks}}
+        </div>
+        <div id="unmatched-requests" class="tabs__content">
+            {{unmatchedRequests}}
+        </div>
+        <div id="snapshots" class="tabs__content">
+            <p>You can create a snapshot by making a <strong>POST</strong> request to <strong>/__create-debug-snapshot__</strong></p>
+            <p>You can name your snapshot by including a body of <strong>{"name": "something"}</strong>.</p>
+            <form action="/__clear-snapshots__" method="post">
+                <button>Clear snapshots</button>
+            </form>
+            <p>Snapshots that have been stored will appear below:</p>
+            <ul>
+                {{snapshotListHtml}}
+            </ul>
+        </div>
+    </div>
+</main>
+<script src="/__debugger__/client-side-script.js"></script>
+</body>
+</html>
