@@ -1,6 +1,6 @@
 {
   "name": "@govuk-pay/run-amock",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "type": "module",
   "scripts": {
     "test": "node spec/all.spec.js"
