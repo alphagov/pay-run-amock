@@ -169,7 +169,8 @@ describe('equality-with-mountebank', () => {
 
     await fetch(mockedHttpBaseUrl + '/example?page=1&status=failed2-this-will-not-be-matched', {
       headers: {
-        'X-Something-Custom': 'abcdefg'
+        'X-Something-Custom': 'abcdefg',
+        'user-agent': 'node'
       }
     })
 
