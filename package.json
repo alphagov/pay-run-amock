@@ -3,7 +3,8 @@
   "version": "0.0.6",
   "type": "module",
   "scripts": {
-    "test": "node spec/all.spec.js"
+    "test": "node spec/all.spec.js",
+    "dev": "./bin/run.js --port=8000"
   },
   "bin": {
     "run-amock": "bin/run.js"
