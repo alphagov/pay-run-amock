@@ -65,4 +65,51 @@ describe('divergence-from-mountebank', () => {
       assert.equal(404, successResult.status, `Expected a failure response from [${fullMockUrl}], got a [${successResult.status}] with query string [${queryString}]`)
     }))
   })
+  it(`should require no query string when using deep equals with no query string`, async () => {
+    const uri = '/v1/example'
+    await setupMocks({
+      defaultResponse: { statusCode: 404, body: 'No stub predicate matches the request', headers: {} },
+      stubs: [
+        {
+          predicates: [
+            {
+              deepEquals: {
+                method: "GET",
+                path: uri
+              }
+            }
+          ],
+          responses: [
+            {
+              is: {
+                statusCode: 200,
+                headers: {
+                  'Content-Type': "application/json"
+                },
+                body: {
+                  hello: 'world'
+                }
+              }
+            }
+          ]
+        }
+      ]
+    })
+
+    const fullMockUrl = mockedHttpBaseUrl + uri
+
+    const successResult = await fetch(fullMockUrl)
+
+    assert.equal(200, successResult.status, `Expected a success response from [${fullMockUrl}], got a [${successResult.status}] with no query string`)
+
+    const unacceptableQueryStrings = [
+      'abc=def'
+    ]
+    await Promise.all(unacceptableQueryStrings.map(async (queryString) => {
+      const successResult = await fetch(fullMockUrl + '?' + queryString)
+
+      assert.equal(404, successResult.status, `Expected a failure response from [${fullMockUrl}], got a [${successResult.status}] with query string [${queryString}]`)
+    }))
+  })
+
 })

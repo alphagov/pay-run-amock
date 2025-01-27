@@ -714,6 +714,65 @@ testRunConfigs.forEach(config => {
       assert.equal(404, successResult.status, `Expected a failure response from [${fullMockUrl}], got a [${successResult.status}]`)
     }))
   })
+  it(`should require no body when using deep equals with no body (${config.name})`, async () => {
+    const uri = '/v1/example'
+    await setupImposters(config, {
+      port: mockPort,
+      protocol: 'http',
+      defaultResponse: { statusCode: 404, body: 'No stub predicate matches the request', headers: {} },
+      stubs: [
+        {
+          name: `The name doesn't matter (unique: ${Math.random()})`,
+          predicates: [
+            {
+              deepEquals: {
+                method: "POST",
+                path: uri
+              }
+            }
+          ],
+          responses: [
+            {
+              is: {
+                statusCode: 200,
+                headers: {
+                  'Content-Type': "application/json"
+                },
+                body: {
+                  hello: 'world'
+                }
+              }
+            }
+          ]
+        }
+      ]
+    })
+
+    const fullMockUrl = config.mockedHttpBaseUrl + uri
+
+    const successResult = await fetch(fullMockUrl, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'}
+    })
+
+    assert.equal(200, successResult.status, `Expected a success response from [${fullMockUrl}], got a [${successResult.status}]`)
+
+    const successResult2 = await httpPostJson(fullMockUrl, undefined)
+
+    assert.equal(200, successResult2.status, `Expected a success response from [${fullMockUrl}], got a [${successResult2.status}]`)
+
+    const unacceptableBodies = [
+      {
+        hello: 'world'
+      },
+      {}
+    ]
+    await Promise.all(unacceptableBodies.map(async (queryString) => {
+      const successResult = await httpPostJson(fullMockUrl + queryString)
+
+      assert.equal(404, successResult.status, `Expected a failure response from [${fullMockUrl}], got a [${successResult.status}]`)
+    }))
+  })
   it(`should work with Frontend tests for wallets (${config.name})`, async () => {
     const uri = '/v1/frontend/charges/ub8de8r5mh4pb49rgm1ismaqfv'
     await setupImposters(config, {
