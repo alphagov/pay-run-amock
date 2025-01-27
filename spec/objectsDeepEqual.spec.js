@@ -124,4 +124,41 @@ describe('objectDeepEqual', () => {
       ]
     })
   })
+  it('should match on null and undefined', () => {
+    const basis = {
+      valueOne: 'one',
+      valueNull: null,
+      valueUndefined: undefined
+    }
+    expectMatch(basis, {
+      valueNull: null,
+      valueOne: 'one',
+      valueUndefined: undefined
+    })
+    expectNotToMatch(basis, {
+      valueNull: 'Value',
+      valueOne: 'one',
+      valueUndefined: undefined
+    })
+    expectNotToMatch(basis, {
+      valueNull: undefined,
+      valueOne: 'one',
+      valueUndefined: undefined
+    })
+    expectNotToMatch(basis, {
+      valueNull: null,
+      valueOne: null,
+      valueUndefined: undefined
+    })
+    expectNotToMatch(basis, {
+      valueNull: null,
+      valueOne: 'one',
+      valueUndefined: 'value'
+    })
+    expectNotToMatch(basis, {
+      valueNull: null,
+      valueOne: 'one',
+      valueUndefined: null
+    })
+  })
 })
