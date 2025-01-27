@@ -627,6 +627,93 @@ testRunConfigs.forEach(config => {
       assert.equal(404, successResult.status, `Expected a failure response from [${fullMockUrl}], got a [${successResult.status}]`)
     }))
   })
+  it(`should allow null in request body (${config.name})`, async () => {
+    const uri = '/v1/api/services/service-456-def'
+    await setupImposters(config, {
+      port: mockPort,
+      protocol: 'http',
+      defaultResponse: { statusCode: 404, body: 'No stub predicate matches the request', headers: {} },
+      stubs: [
+        {
+          name: `The name doesn't matter (unique: ${Math.random()})`,
+          "predicates": [
+            {
+              "deepEquals": {
+                "method": "PATCH",
+                "path": uri,
+                "body": {
+                  "op": "replace",
+                  "path": "default_billing_address_country",
+                  "value": null
+                }
+              }
+            }
+          ],
+          "responses": [
+            {
+              "is": {
+                "statusCode": 200,
+                "headers": {
+                  "Content-Type": "application/json"
+                },
+                "body": {
+                  "id": 857,
+                  "external_id": "service-456-def",
+                  "name": "System Generated",
+                  "gateway_account_ids": [
+                    11
+                  ],
+                  "service_name": {
+                    "en": "System Generated"
+                  },
+                  "redirect_to_service_immediately_on_terminal_state": false,
+                  "collect_billing_address": false,
+                  "current_go_live_stage": "NOT_STARTED",
+                  "experimental_features_enabled": true,
+                  "current_psp_test_account_stage": "NOT_STARTED",
+                  "agent_initiated_moto_enabled": false,
+                  "takes_payments_over_phone": false,
+                  "created_date": "2024-08-30"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    })
+
+    const fullMockUrl = config.mockedHttpBaseUrl + uri
+    const acceptableBody = {
+      op: 'replace',
+      path: 'default_billing_address_country',
+      value: null
+    }
+
+    const successResult = await httpPatchJson(fullMockUrl, acceptableBody)
+
+    assert.equal(200, successResult.status, `Expected a success response from [${fullMockUrl}], got a [${successResult.status}]`)
+    const unacceptableBodies = [
+      {
+        op: 'replace',
+        path: 'default_billing_address_country',
+        value: undefined
+      },
+      {
+        op: 'replace',
+        path: 'default_billing_address_country'
+      },
+      {
+        op: 'replace',
+        path: 'default_billing_address_country',
+        value: 'something'
+      }
+    ]
+    await Promise.all(unacceptableBodies.map(async (body) => {
+      const successResult = await httpPatchJson(fullMockUrl, body)
+
+      assert.equal(404, successResult.status, `Expected a failure response from [${fullMockUrl}], got a [${successResult.status}]`)
+    }))
+  })
   it(`should work with Frontend tests for wallets (${config.name})`, async () => {
     const uri = '/v1/frontend/charges/ub8de8r5mh4pb49rgm1ismaqfv'
     await setupImposters(config, {
