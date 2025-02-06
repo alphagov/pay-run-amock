@@ -3,7 +3,8 @@
   "version": "0.0.9",
   "type": "module",
   "scripts": {
-    "test": "node spec/all.spec.js"
+    "test": "node spec/all.spec.js",
+    "dev": "bin/dev.js"
   },
   "bin": {
     "run-amock": "bin/run.js"
