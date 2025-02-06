@@ -169,8 +169,14 @@ describe('equality-with-mountebank', () => {
 
     await fetch(mockedHttpBaseUrl + '/example?page=1&status=failed2-this-will-not-be-matched', {
       headers: {
-        'X-Something-Custom': 'abcdefg',
-        'user-agent': 'node'
+        host: 'localhost:9999',
+        connection: 'keep-alive',
+        accept: '*/*',
+        'accept-language': '*',
+        'sec-fetch-mode': 'cors',
+        'user-agent': 'node',
+        'x-something-custom': 'abcdefg',
+        'accept-encoding': 'gzip, deflate'
       }
     })
 

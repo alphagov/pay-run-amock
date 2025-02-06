@@ -276,6 +276,66 @@ testRunConfigs.forEach(config => {
       assert.equal(404, successResult.status, `Expected a failure response from [${fullMockUrl}], got a [${successResult.status}] for query string [${queryString}]`)
     }))
   })
+  it(`should be able to distinguish between the presence and absence of a query string (option A) (${config.name})`, async () => {
+    const url = '/example'
+    await setupImposters(config, {
+      port: mockPort,
+      protocol: 'http',
+      defaultResponse: { statusCode: 404, body: 'Default 404', headers: {} },
+      stubs: [
+        {
+          name: `With no query string`,
+          predicates: [
+            {
+              deepEquals: {
+                method: 'GET',
+                path: url,
+                query: {}
+              }
+            }
+          ],
+          responses: [
+            {
+              is: {
+                statusCode: 301
+              }
+            }
+          ]
+        },
+        {
+          name: `With a query string`,
+          predicates: [
+            {
+              deepEquals: {
+                method: 'GET',
+                path: url,
+                query: {
+                  a: 'b'
+                }
+              }
+            }
+          ],
+          responses: [
+            {
+              is: {
+                statusCode: 302
+              }
+            }
+          ]
+        }
+      ]
+    })
+
+    const fullMockUrl = config.mockedHttpBaseUrl + url
+    const noQueryStringResponse = await fetch(fullMockUrl)
+
+    assert.equal(301, noQueryStringResponse.status, `Expected a 301 response from [${fullMockUrl}], got a [${noQueryStringResponse.status}] for no query string`)
+
+    const queryString = 'a=b'
+    const withQueryStringResponse = await fetch(fullMockUrl + '?' + queryString)
+
+    assert.equal(302, withQueryStringResponse.status, `Expected a 302 response from [${fullMockUrl}], got a [${withQueryStringResponse.status}] for query string [${queryString}]`)
+  })
   it(`should type correct query strings (${config.name})`, async () => {
     const url = '/example'
     await setupImposters(config, {
